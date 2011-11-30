@@ -8,6 +8,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.dataone.service.types.v1.SystemMetadata;
+
 @Entity
 @Table(name = "index_task")
 public class IndexTask implements Serializable {
@@ -27,7 +29,7 @@ public class IndexTask implements Serializable {
     /**
      * The object format id
      */
-    private String formatid;
+    private String formatId;
 
     /**
      * Filesystem path to a temporary cache of the system metadata as an XML
@@ -75,6 +77,25 @@ public class IndexTask implements Serializable {
         this.status = STATUS_NEW;
     }
 
+    public IndexTask(SystemMetadata smd) {
+        this();
+        if (smd.getIdentifier() != null) {
+            this.pid = smd.getIdentifier().getValue();
+        }
+        if (smd.getFormatId() != null) {
+            this.formatId = smd.getFormatId().getValue();
+        }
+        if (smd.getDateSysMetadataModified() != null) {
+            this.dateSysMetaModified = smd.getDateSysMetadataModified().getTime();
+        }
+
+        // task.setSysMetaPath(sysMetaPath);
+        // task.setObjectPath(objectPath);
+
+        // determine priority
+        this.priority = 0;
+    }
+
     public Long getId() {
         return id;
     }
@@ -91,12 +112,12 @@ public class IndexTask implements Serializable {
         this.pid = pid;
     }
 
-    public String getFormatid() {
-        return formatid;
+    public String getFormatId() {
+        return formatId;
     }
 
-    public void setFormatid(String formatid) {
-        this.formatid = formatid;
+    public void setFormatId(String formatid) {
+        this.formatId = formatid;
     }
 
     public String getSysMetaPath() {
@@ -141,7 +162,7 @@ public class IndexTask implements Serializable {
 
     @Override
     public String toString() {
-        return "IndexTask [id=" + id + ", pid=" + pid + ", formatid=" + formatid + ", sysMetaPath="
+        return "IndexTask [id=" + id + ", pid=" + pid + ", formatid=" + formatId + ", sysMetaPath="
                 + sysMetaPath + ", objectPath=" + objectPath + ", dateSysMetaModified="
                 + dateSysMetaModified + ", taskModifiedDate=" + taskModifiedDate + ", priority="
                 + priority + ", status=" + status + "]";

@@ -21,17 +21,18 @@ public class IndexTaskJpaRepositoryTest {
     private IndexTaskRepository repo;
 
     @Test
-    public void testRepoInjection() {
+    public void testRepositoryInjection() {
         Assert.assertNotNull(repo);
     }
 
     @Test
     public void testAddOneTask() {
+        int initialSize = repo.findAll().size();
         saveIndexTask("pid1");
         List<IndexTask> results = repo.findAll();
-        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(initialSize + 1, results.size());
         IndexTask indexTask = results.get(0);
-        Assert.assertEquals(0, "pid1".compareTo(indexTask.getPid()));
+        Assert.assertEquals(initialSize, "pid1".compareTo(indexTask.getPid()));
     }
 
     @Test
@@ -46,11 +47,13 @@ public class IndexTaskJpaRepositoryTest {
 
     @Test
     public void testDeleteTask() {
+        int intialSize = repo.findAll().size();
         IndexTask it = saveIndexTask("deleteThis");
         Long itId = it.getId();
         repo.delete(it);
         Assert.assertNull(repo.findOne(itId));
         Assert.assertFalse(repo.exists(itId));
+        Assert.assertEquals(intialSize, repo.findAll().size());
     }
 
     private IndexTask saveIndexTask(String pid) {
