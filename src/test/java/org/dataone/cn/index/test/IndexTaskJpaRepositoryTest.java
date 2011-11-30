@@ -15,7 +15,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 // context files are located from the root of the test's classpath
 // for example org/dataone/cn/index/test/
 @ContextConfiguration(locations = { "test-context.xml" })
-public class IndexingTaskJpaTest {
+public class IndexTaskJpaRepositoryTest {
 
     @Autowired
     private IndexTaskRepository repo;
