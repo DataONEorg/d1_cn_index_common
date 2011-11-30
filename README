@@ -1,0 +1,9 @@
+DataONE CN Index Common Lib
+------------------------
+
+This library proved the index task item data model along with JPA and spring-data configuration to create
+a IndexTask repository providing persistance and query functionality.
+
+See the test classes under src/test for example usage.
+
+See LICENSE.txt for the details of distributing this software.
