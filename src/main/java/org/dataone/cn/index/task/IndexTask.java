@@ -1,18 +1,32 @@
 package org.dataone.cn.index.task;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.persistence.Version;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.log4j.Logger;
 import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.util.TypeMarshaller;
+import org.jibx.runtime.JiBXException;
 
 @Entity
 @Table(name = "index_task")
 public class IndexTask implements Serializable {
+
+    @Transient
+    private static Logger logger = Logger.getLogger(IndexTask.class.getName());
 
     /**
      * PK of index_task table
@@ -21,9 +35,14 @@ public class IndexTask implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Version
+    @Column(nullable = false)
+    private int version;
+
     /**
      * The object unique identifier
      */
+    @Column(nullable = false)
     private String pid;
 
     /**
@@ -32,10 +51,11 @@ public class IndexTask implements Serializable {
     private String formatId;
 
     /**
-     * Filesystem path to a temporary cache of the system metadata as an XML
-     * document on disk
+     * Serialized version of the systemMetaData instance
      */
-    private String sysMetaPath;
+    @Lob
+    @Column
+    private String sysMetadata;
 
     /**
      * Filesystem path to the science metadata or resource map object. Null for
@@ -56,28 +76,34 @@ public class IndexTask implements Serializable {
     /**
      * Relative priority of this task. Some operations such as a change in
      * access control rules should be propagated to the index before others
+     * 
+     * The lower the priority value, the higher the priority. 0 will be highest
+     * priority 99 is no priority?
      **/
     private int priority;
+    private static final int PRIORITY_UPDATE = 1;
+    private static final int PRIORITY_ADD = 2;
+    private static final int PRIORITY_NONE = 99;
 
     /**
      * An indication that a particular task is being processed, etc. Will
      * indicate "NEW", "IN_PROCESS", "COMPLETE", "FAILED"
      * 
-     * The tstamp should be updated when the status flag changes.
+     * The taskModifiedDate is updated when the status flag changes.
      */
     private String status;
 
-    private static final String STATUS_NEW = "NEW";
-    private static final String STATUS_IN_PROCESS = "IN PROCESS";
-    private static final String STATUS_COMPLETE = "COMPLETE";
-    private static final String STATUS_FAILED = "FAILED";
+    public static final String STATUS_NEW = "NEW";
+    public static final String STATUS_IN_PROCESS = "IN PROCESS";
+    public static final String STATUS_COMPLETE = "COMPLETE";
+    public static final String STATUS_FAILED = "FAILED";
 
     public IndexTask() {
         this.taskModifiedDate = System.currentTimeMillis();
         this.status = STATUS_NEW;
     }
 
-    public IndexTask(SystemMetadata smd) {
+    public IndexTask(SystemMetadata smd, String objectPath) {
         this();
         if (smd.getIdentifier() != null) {
             this.pid = smd.getIdentifier().getValue();
@@ -88,12 +114,42 @@ public class IndexTask implements Serializable {
         if (smd.getDateSysMetadataModified() != null) {
             this.dateSysMetaModified = smd.getDateSysMetadataModified().getTime();
         }
+        this.marshalSystemMetadata(smd);
 
-        // task.setSysMetaPath(sysMetaPath);
-        // task.setObjectPath(objectPath);
+        this.setObjectPath(objectPath);
 
-        // determine priority
-        this.priority = 0;
+        this.priority = PRIORITY_NONE;
+    }
+
+    @Transient
+    public SystemMetadata unMarshalSystemMetadata() {
+        InputStream is = new ByteArrayInputStream(this.sysMetadata.getBytes());
+        SystemMetadata smd = null;
+        try {
+            smd = TypeMarshaller.unmarshalTypeFromStream(SystemMetadata.class, is);
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        } catch (InstantiationException e) {
+            logger.error(e.getMessage(), e);
+        } catch (IllegalAccessException e) {
+            logger.error(e.getMessage(), e);
+        } catch (JiBXException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return smd;
+    }
+
+    @Transient
+    private void marshalSystemMetadata(SystemMetadata smd) {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try {
+            TypeMarshaller.marshalTypeToOutputStream(smd, os);
+        } catch (JiBXException jibxEx) {
+            logger.error(jibxEx.getMessage(), jibxEx);
+        } catch (IOException ioEx) {
+            logger.error(ioEx.getMessage(), ioEx);
+        }
+        this.sysMetadata = os.toString();
     }
 
     public Long getId() {
@@ -120,12 +176,12 @@ public class IndexTask implements Serializable {
         this.formatId = formatid;
     }
 
-    public String getSysMetaPath() {
-        return sysMetaPath;
+    public String getSysMetadata() {
+        return sysMetadata;
     }
 
-    public void setSysMetaPath(String sysMetaPath) {
-        this.sysMetaPath = sysMetaPath;
+    public void setSysMetadata(String sysMetadata) {
+        this.sysMetadata = sysMetadata;
     }
 
     public String getObjectPath() {
@@ -152,6 +208,17 @@ public class IndexTask implements Serializable {
         this.priority = priority;
     }
 
+    @Transient
+    public void setUpdatePriority() {
+        this.priority = PRIORITY_UPDATE;
+
+    }
+
+    @Transient
+    public void setAddPriority() {
+        this.priority = PRIORITY_ADD;
+    }
+
     public long getTaskModifiedDate() {
         return taskModifiedDate;
     }
@@ -160,12 +227,28 @@ public class IndexTask implements Serializable {
         this.taskModifiedDate = taskModifiedDate;
     }
 
-    @Override
-    public String toString() {
-        return "IndexTask [id=" + id + ", pid=" + pid + ", formatid=" + formatId + ", sysMetaPath="
-                + sysMetaPath + ", objectPath=" + objectPath + ", dateSysMetaModified="
-                + dateSysMetaModified + ", taskModifiedDate=" + taskModifiedDate + ", priority="
-                + priority + ", status=" + status + "]";
+    public String getStatus() {
+        return status;
     }
 
+    public void setStatus(String status) {
+        this.taskModifiedDate = System.currentTimeMillis();
+        this.status = status;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    @Override
+    public String toString() {
+        return "IndexTask [id=" + id + ", pid=" + pid + ", formatid=" + formatId + ", objectPath="
+                + objectPath + ", dateSysMetaModified=" + dateSysMetaModified
+                + ", taskModifiedDate=" + taskModifiedDate + ", priority=" + priority + ", status="
+                + status + "]";
+    }
 }
