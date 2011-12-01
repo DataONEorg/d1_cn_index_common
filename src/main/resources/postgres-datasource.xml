@@ -9,13 +9,24 @@
     http://www.springframework.org/schema/tx
  	http://www.springframework.org/schema/tx/spring-tx.xsd">
 
+<!-- 
     <bean id="dataSource"
        class="org.springframework.jdbc.datasource.DriverManagerDataSource"
        p:driverClassName="${datasource.driverClass}" 
        p:url="${datasource.url}"
        p:username="${datasource.username}"
        p:password="${datasource.password}"/>
-
+ -->
+ 
+ <!--  dbcp.BasicDataSource is a connection pool enabled data source manager -->
+ 	<bean id="dataSource"
+		class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"
+ 		p:driverClassName="${datasource.driverClass}"
+	  	p:url="${datasource.url}"
+	  	p:username="${datasource.username}"
+	   	p:password="${datasource.password}"
+	/>
+			
     <bean id="jpaVendorAdapter"
        class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"
 		p:showSql="true"
