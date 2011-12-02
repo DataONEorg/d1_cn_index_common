@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -28,8 +30,14 @@ public class IndexTask implements Serializable {
     @Transient
     private static Logger logger = Logger.getLogger(IndexTask.class.getName());
 
+    @Transient
+    private final DateFormat format = new SimpleDateFormat("MM/dd/yyyy:HH:mm:ss:SS");
+
+    @Transient
+    private static final String FORMAT_RESOURCE_MAP = "http://www.openarchives.org/ore/terms";
+
     /**
-     * PK of index_task table
+     * Primary key of index_task table
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -78,11 +86,19 @@ public class IndexTask implements Serializable {
      * access control rules should be propagated to the index before others
      * 
      * The lower the priority value, the higher the priority. 0 will be highest
-     * priority 99 is no priority?
+     * priority 99 is no priority.
+     * 
+     * System meta data objects that represent resource maps are given priority
+     * within the add, update groups. This way resource maps will be processed
+     * at the top of the queue, to short circuit processing index tasks related
+     * to the resource map's referenced objects.
+     * 
      **/
     private int priority;
-    private static final int PRIORITY_UPDATE = 1;
-    private static final int PRIORITY_ADD = 2;
+    private static final int PRIOIRTY_UPDATE_RESOURCE_MAP = 1;
+    private static final int PRIORITY_UPDATE = 2;
+    private static final int PRIORITY_ADD_RESOURCE_MAP = 3;
+    private static final int PRIORITY_ADD = 4;
     private static final int PRIORITY_NONE = 99;
 
     /**
@@ -210,13 +226,25 @@ public class IndexTask implements Serializable {
 
     @Transient
     public void setUpdatePriority() {
-        this.priority = PRIORITY_UPDATE;
-
+        if (isResourceMap()) {
+            this.priority = PRIOIRTY_UPDATE_RESOURCE_MAP;
+        } else {
+            this.priority = PRIORITY_UPDATE;
+        }
     }
 
     @Transient
     public void setAddPriority() {
-        this.priority = PRIORITY_ADD;
+        if (isResourceMap()) {
+            this.priority = PRIORITY_ADD_RESOURCE_MAP;
+        } else {
+            this.priority = PRIORITY_ADD;
+        }
+    }
+
+    @Transient
+    private boolean isResourceMap() {
+        return FORMAT_RESOURCE_MAP.equals(this.formatId);
     }
 
     public long getTaskModifiedDate() {
@@ -227,6 +255,10 @@ public class IndexTask implements Serializable {
         this.taskModifiedDate = taskModifiedDate;
     }
 
+    public String getTaskModDateString() {
+        return format.format(this.getTaskModifiedDate());
+    }
+
     public String getStatus() {
         return status;
     }
@@ -234,6 +266,10 @@ public class IndexTask implements Serializable {
     public void setStatus(String status) {
         this.taskModifiedDate = System.currentTimeMillis();
         this.status = status;
+    }
+
+    public void markInProgress() {
+        this.setStatus(STATUS_IN_PROCESS);
     }
 
     public int getVersion() {

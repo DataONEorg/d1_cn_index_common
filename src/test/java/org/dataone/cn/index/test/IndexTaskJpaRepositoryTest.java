@@ -49,7 +49,7 @@ public class IndexTaskJpaRepositoryTest {
         IndexTask task = saveIndexTask("pid1");
         Assert.assertEquals(initialSize + 1, repo.findAll().size());
         IndexTask indexTask = repo.findOne(task.getId());
-        Assert.assertEquals(0, "pid1".compareTo(indexTask.getPid()));
+        Assert.assertTrue("pid1".equals(indexTask.getPid()));
     }
 
     @Test
@@ -59,7 +59,7 @@ public class IndexTaskJpaRepositoryTest {
         it.setPid("updatePid");
         repo.save(it);
         it = repo.findOne(itId);
-        Assert.assertEquals(0, "updatePid".compareTo(it.getPid()));
+        Assert.assertTrue("updatePid".equals(it.getPid()));
     }
 
     @Test
@@ -87,7 +87,7 @@ public class IndexTaskJpaRepositoryTest {
             // exception from hibernate - optimistic lock failure.
             repo.save(it);
         } catch (HibernateOptimisticLockingFailureException e) {
-            logger.info("******* Stale Object Detected!");
+            logger.info("******* Stale Object Detected (as expected)!");
             errorFlag = true;
         }
         Assert.assertTrue(errorFlag);
@@ -101,7 +101,7 @@ public class IndexTaskJpaRepositoryTest {
         Assert.assertEquals(1, itList.size());
         IndexTask it = itList.get(0);
         Assert.assertNotNull(it);
-        Assert.assertEquals(0, pidValue.compareTo(it.getPid()));
+        Assert.assertTrue(pidValue.equals(it.getPid()));
     }
 
     @Test
@@ -113,8 +113,50 @@ public class IndexTaskJpaRepositoryTest {
         Assert.assertEquals(1, itList.size());
         IndexTask it = itList.get(0);
         Assert.assertNotNull(it);
-        Assert.assertEquals(0, pidValue.compareTo(it.getPid()));
-        Assert.assertEquals(0, status.compareTo(it.getStatus()));
+        Assert.assertTrue(pidValue.equals(it.getPid()));
+        Assert.assertTrue(status.equals(it.getStatus()));
+    }
+
+    /**
+     * Tests status narrowing and ordering of the task queue query
+     */
+    @Test
+    public void testFindIndexTaskQueue() {
+        saveIndexTaskWithStatusAndPriority("garbage task" + UUID.randomUUID().toString(),
+                "garbage status", 1);
+
+        String status = "findQueue";
+
+        // created first, should be first among priority 2 items
+        String pidValue1 = "1st created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriority(pidValue1, status, 2);
+
+        // created second, should be second among priority 2 items
+        String pidValue2 = "2nd created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriority(pidValue2, status, 2);
+
+        // created last, but should be first due to highest priority
+        String pidValue3 = "3rd created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriority(pidValue3, status, 1);
+
+        List<IndexTask> queue = repo.findIndexTaskQueue(status);
+        Assert.assertEquals(3, queue.size());
+
+        IndexTask task = queue.get(0);
+        logger.info("First queue task: " + task.getPid() + " priority: " + task.getPriority()
+                + " task build time: " + task.getTaskModDateString());
+
+        IndexTask task2 = queue.get(1);
+        logger.info("Second queue task: " + task2.getPid() + " priority: " + task2.getPriority()
+                + " task build time: " + task2.getTaskModDateString());
+
+        IndexTask task3 = queue.get(2);
+        logger.info("Second queue task: " + task3.getPid() + " priority: " + task3.getPriority()
+                + " task build time: " + task3.getTaskModDateString());
+
+        Assert.assertTrue(pidValue3.equals(task.getPid()));
+        Assert.assertTrue(pidValue1.equals(task2.getPid()));
+        Assert.assertTrue(pidValue2.equals(task3.getPid()));
     }
 
     /**
@@ -132,12 +174,12 @@ public class IndexTaskJpaRepositoryTest {
         IndexTask task = new IndexTask(smd, null);
         repo.save(task);
         task = repo.findOne(task.getId());
-        Assert.assertEquals(0, pidValue.compareTo(task.getPid()));
-        Assert.assertEquals(0, formatValue.compareTo(task.getFormatId()));
+        Assert.assertTrue(pidValue.equals(task.getPid()));
+        Assert.assertTrue(formatValue.equals(task.getFormatId()));
         smd = task.unMarshalSystemMetadata();
         Assert.assertNotNull(smd);
-        Assert.assertEquals(0, pidValue.compareTo(smd.getIdentifier().getValue()));
-        Assert.assertEquals(0, formatValue.compareTo(smd.getFormatId().getValue()));
+        Assert.assertTrue(pidValue.equals(smd.getIdentifier().getValue()));
+        Assert.assertTrue(formatValue.equals(smd.getFormatId().getValue()));
     }
 
     /**
@@ -155,8 +197,8 @@ public class IndexTaskJpaRepositoryTest {
             SystemMetadata smdNew = TypeMarshaller
                     .unmarshalTypeFromStream(SystemMetadata.class, is);
             Assert.assertNotNull(smd);
-            Assert.assertEquals(0, pidValue.compareTo(smd.getIdentifier().getValue()));
-            Assert.assertEquals(0, formatValue.compareTo(smd.getFormatId().getValue()));
+            Assert.assertTrue(pidValue.equals(smd.getIdentifier().getValue()));
+            Assert.assertTrue(formatValue.equals(smd.getFormatId().getValue()));
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         } catch (InstantiationException e) {
@@ -173,9 +215,14 @@ public class IndexTaskJpaRepositoryTest {
     }
 
     private IndexTask saveIndexTaskWithStatus(String pid, String status) {
+        return saveIndexTaskWithStatusAndPriority(pid, status, 99);
+    }
+
+    private IndexTask saveIndexTaskWithStatusAndPriority(String pid, String status, int priority) {
         IndexTask it = new IndexTask();
         it.setPid(pid);
         it.setStatus(status);
+        it.setPriority(priority);
         repo.save(it);
         return it;
     }
