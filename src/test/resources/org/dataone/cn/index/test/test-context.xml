@@ -3,6 +3,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <import resource="classpath:task-index-context.xml"/>
-    <!-- this import overrides default postgres datasource -->
+    <!-- this import overrides default postgres datasource 
+	-->
 	<import resource="classpath:hsql-datasource.xml" />
 </beans>

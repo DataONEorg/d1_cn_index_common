@@ -219,7 +219,7 @@ public class IndexTaskJpaRepositoryTest {
     }
 
     private IndexTask saveIndexTaskWithStatusAndPriority(String pid, String status, int priority) {
-        IndexTask it = new IndexTask();
+        IndexTask it = new IndexTask(buildTestSysMetaData(pid, "test-format"), "test object path");
         it.setPid(pid);
         it.setStatus(status);
         it.setPriority(priority);
