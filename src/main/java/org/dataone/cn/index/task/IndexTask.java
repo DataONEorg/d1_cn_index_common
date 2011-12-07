@@ -272,6 +272,14 @@ public class IndexTask implements Serializable {
         this.setStatus(STATUS_IN_PROCESS);
     }
 
+    public void markNew() {
+        this.setStatus(STATUS_NEW);
+    }
+
+    public void markFailed() {
+        this.setStatus(STATUS_FAILED);
+    }
+
     public int getVersion() {
         return version;
     }

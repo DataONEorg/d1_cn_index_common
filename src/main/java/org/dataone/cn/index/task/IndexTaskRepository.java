@@ -15,4 +15,5 @@ public interface IndexTaskRepository extends JpaRepository<IndexTask, Long> {
 
     @Query("FROM IndexTask where status=?1 ORDER BY priority ASC, taskModifiedDate ASC")
     List<IndexTask> findIndexTaskQueue(String status);
+
 }
