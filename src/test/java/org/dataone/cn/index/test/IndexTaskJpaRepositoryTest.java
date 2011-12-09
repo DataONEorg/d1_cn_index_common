@@ -139,7 +139,7 @@ public class IndexTaskJpaRepositoryTest {
         String pidValue3 = "3rd created task: " + UUID.randomUUID().toString();
         saveIndexTaskWithStatusAndPriority(pidValue3, status, 1);
 
-        List<IndexTask> queue = repo.findIndexTaskQueue(status);
+        List<IndexTask> queue = repo.findByStatusOrderByPriorityAscTaskModifiedDateAsc(status);
         Assert.assertEquals(3, queue.size());
 
         IndexTask task = queue.get(0);
