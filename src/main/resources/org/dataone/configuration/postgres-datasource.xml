@@ -8,15 +8,6 @@
     http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
     http://www.springframework.org/schema/tx
  	http://www.springframework.org/schema/tx/spring-tx.xsd">
-
-<!-- 
-    <bean id="dataSource"
-       class="org.springframework.jdbc.datasource.DriverManagerDataSource"
-       p:driverClassName="${datasource.driverClass}" 
-       p:url="${datasource.url}"
-       p:username="${datasource.username}"
-       p:password="${datasource.password}"/>
- -->
  
  <!--  dbcp.BasicDataSource is a connection pool enabled data source manager -->
  	<bean id="dataSource"

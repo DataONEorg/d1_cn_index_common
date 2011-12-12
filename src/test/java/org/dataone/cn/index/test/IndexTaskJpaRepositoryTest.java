@@ -127,6 +127,8 @@ public class IndexTaskJpaRepositoryTest {
 
         String status = "findQueue";
 
+        repo.deleteAll();
+
         // created first, should be first among priority 2 items
         String pidValue1 = "1st created task: " + UUID.randomUUID().toString();
         saveIndexTaskWithStatusAndPriority(pidValue1, status, 2);
