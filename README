@@ -4,6 +4,18 @@ DataONE CN Index Common Lib
 This library provides the index task item data model along with JPA and spring-data configuration to create
 a IndexTask repository providing persistance and query functionality.
 
+The repository can be configured to use either a postgres or hql datasource by modifying the configuration in
+task-index-context.xml.  This file imports a spring context file called postgres-datasource.xml.  Change this
+configuration to use the provided hsql-datasource.xml for in-memory database instead.
+
+The jdbc.properties file contains default configuration parameters required for the datasource, for local
+testing.  This property file is not imported in task-index-context.xml but rather left for 'consummer's of
+the repository to provide the path for this configuration.  In production, this configuration will be external
+to the component installation for easier configuration.  
+
+See text-context.xml for an example of including and 
+configuring the datasource for test run-time
+
 See the test classes under src/test for example usage.
 
 See LICENSE.txt for the details of distributing this software.
