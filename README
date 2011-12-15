@@ -6,7 +6,11 @@ a IndexTask repository providing persistance and query functionality.
 
 The repository can be configured to use either a postgres or hql datasource by modifying the configuration in
 task-index-context.xml.  This file imports a spring context file called postgres-datasource.xml.  Change this
-configuration to use the provided hsql-datasource.xml for in-memory database instead.
+configuration to use the provided hsql-datasource.xml for in-memory database instead.  This can be done from 
+the test-config.xml by importing the hsql-datasource.xml - which will over-write the postgres config.
+
+During testing with postgres, it may be helpful to have hibernate generate the database ddl.  This can be done
+by setting the 'generateDdl' value to 'true' from 'false' in the postgres-datasource.xml config.
 
 The jdbc.properties file contains default configuration parameters required for the datasource, for local
 testing.  This property file is not imported in task-index-context.xml but rather left for 'consummer's of
@@ -19,3 +23,4 @@ configuring the datasource for test run-time
 See the test classes under src/test for example usage.
 
 See LICENSE.txt for the details of distributing this software.
+
