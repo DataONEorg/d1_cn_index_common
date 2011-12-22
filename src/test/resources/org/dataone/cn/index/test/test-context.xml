@@ -10,6 +10,9 @@
 	<context:property-placeholder location="classpath:org/dataone/configuration/jdbc.properties"/>
     
     <import resource="classpath:task-index-context.xml"/>
+    
+    
+    
     <!-- this import overrides default postgres datasource 
 	-->
 	<import resource="classpath:org/dataone/configuration/hsql-datasource.xml" />
