@@ -95,10 +95,10 @@ public class IndexTask implements Serializable {
      * 
      **/
     private int priority;
-    private static final int PRIOIRTY_UPDATE_RESOURCE_MAP = 1;
-    private static final int PRIORITY_UPDATE = 2;
-    private static final int PRIORITY_ADD_RESOURCE_MAP = 3;
-    private static final int PRIORITY_ADD = 4;
+    private static final int PRIORITY_UPDATE = 1;
+    private static final int PRIORITY_ADD = 2;
+    private static final int PRIOIRTY_UPDATE_RESOURCE_MAP = 3;
+    private static final int PRIORITY_ADD_RESOURCE_MAP = 4;
     private static final int PRIORITY_NONE = 99;
 
     /**
@@ -166,6 +166,21 @@ public class IndexTask implements Serializable {
             logger.error(ioEx.getMessage(), ioEx);
         }
         this.sysMetadata = os.toString();
+    }
+
+    @Transient
+    public boolean isArchived() {
+        boolean archived = false;
+        SystemMetadata smd = unMarshalSystemMetadata();
+        if (smd.getArchived() != null && smd.getArchived().booleanValue()) {
+            archived = true;
+        }
+        return archived;
+    }
+
+    @Transient
+    public boolean isDeleteTask() {
+        return isArchived();
     }
 
     public Long getId() {
