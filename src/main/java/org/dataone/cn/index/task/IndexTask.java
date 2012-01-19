@@ -179,8 +179,18 @@ public class IndexTask implements Serializable {
     }
 
     @Transient
+    public boolean isObsoleted() {
+        boolean obsoleted = false;
+        SystemMetadata smd = unMarshalSystemMetadata();
+        if (smd.getObsoletedBy() != null && smd.getObsoletedBy().getValue() != null) {
+            obsoleted = true;
+        }
+        return obsoleted;
+    }
+
+    @Transient
     public boolean isDeleteTask() {
-        return isArchived();
+        return isArchived() || isObsoleted();
     }
 
     public Long getId() {
