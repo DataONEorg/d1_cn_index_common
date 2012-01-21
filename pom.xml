@@ -9,7 +9,7 @@
 	<properties>
   		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
  		<spring.version>3.1.0.RELEASE</spring.version>
- 		<d1_common_version>1.0.1-SNAPSHOT</d1_common_version>
+ 		<d1_common_version>1.0.1-RC1</d1_common_version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -184,6 +184,16 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+		<repository>
+			<id>dataone.org</id>
+			<url>http://dev-testing.dataone.org/maven</url>
+			<releases>
+			    <enabled>true</enabled>
+			</releases>
+			<snapshots>
+			    <enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 	
 </project>
