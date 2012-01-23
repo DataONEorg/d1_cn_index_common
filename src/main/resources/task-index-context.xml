@@ -25,7 +25,8 @@
     <bean id="entityManagerFactory"
        class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
        p:dataSource-ref="dataSource"
-       p:jpaVendorAdapter-ref="jpaVendorAdapter" />
+       p:jpaVendorAdapter-ref="jpaVendorAdapter"
+       p:packagesToScan="org.dataone.cn.index.task" />
   
     <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager"
        p:entityManagerFactory-ref="entityManagerFactory"
