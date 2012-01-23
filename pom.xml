@@ -16,6 +16,7 @@
 			<groupId>org.dataone</groupId>
 			<artifactId>d1_common_java</artifactId>
 			<version>${d1_common_version}</version>
+			<type>jar</type>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
