@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -165,7 +166,11 @@ public class IndexTask implements Serializable {
         } catch (IOException ioEx) {
             logger.error(ioEx.getMessage(), ioEx);
         }
-        this.sysMetadata = os.toString();
+        try {
+            this.sysMetadata = os.toString("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            logger.error(e.getMessage());
+        }
     }
 
     @Transient
