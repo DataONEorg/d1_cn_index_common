@@ -2,14 +2,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.dataone</groupId>
   <artifactId>d1_cn_index_common</artifactId>
-  <version>1.0.0-RC3-SNAPSHOT</version>
+  <version>1.0.0-RC4-SNAPSHOT</version>
   <name>DataONE Index Common</name>
   <description>DataONE Index Task Common contains infrastructure for the indexer component.  This includes the index task jpa/spring-data data model and repository.</description>
   
 	<properties>
   		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
  		<spring.version>3.1.1.RELEASE</spring.version>
- 		<d1_common_version>1.0.1-RC4-SNAPSHOT</d1_common_version>
+ 		<d1_common_version>1.0.1-RC5-SNAPSHOT</d1_common_version>
 	</properties>
 	<dependencies>
 		<dependency>
