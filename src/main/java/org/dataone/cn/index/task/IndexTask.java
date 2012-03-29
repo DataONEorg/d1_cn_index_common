@@ -14,7 +14,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.Version;
@@ -62,8 +61,7 @@ public class IndexTask implements Serializable {
     /**
      * Serialized version of the systemMetaData instance
      */
-    @Lob
-    @Column
+    @Column(length = 4000)
     private String sysMetadata;
 
     /**
