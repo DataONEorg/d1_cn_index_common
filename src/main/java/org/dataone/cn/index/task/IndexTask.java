@@ -61,7 +61,7 @@ public class IndexTask implements Serializable {
     /**
      * Serialized version of the systemMetaData instance
      */
-    @Column(length = 4000)
+    @Column(columnDefinition = "TEXT")
     private String sysMetadata;
 
     /**
