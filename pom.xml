@@ -9,7 +9,7 @@
 	<properties>
   		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
  		<spring.version>3.1.1.RELEASE</spring.version>
- 		<d1_common_version>1.0.1-RC6-SNAPSHOT</d1_common_version>
+ 		<d1_common_version>1.0.1-RC8-SNAPSHOT</d1_common_version>
 	</properties>
 	<dependencies>
 		<dependency>
