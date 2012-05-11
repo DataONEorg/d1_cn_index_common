@@ -45,15 +45,32 @@ import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 
+/**
+ * An index task is a POJO that represents an update to a DataONE managed
+ * document that needs to be reflected in the search index. An instance of an
+ * IndexTask can be processed separately from the components generating the
+ * indexTask objects. This requires the IndexTask class to carry enough
+ * information that the processing component can properly and efficiently update
+ * the search index.
+ * 
+ * IndexTask is configured via Spring framework as a spring-data JPA object and
+ * is stored in relational datastore.
+ * 
+ * @author sroseboo
+ * 
+ */
 @Entity
 @Table(name = "index_task")
 public class IndexTask implements Serializable {
+
+    private static final long serialVersionUID = -6319197619205919972L;
 
     @Transient
     private static Logger logger = Logger.getLogger(IndexTask.class.getName());
 
     @Transient
-    private final DateFormat format = new SimpleDateFormat("MM/dd/yyyy:HH:mm:ss:SS");
+    private final DateFormat format = new SimpleDateFormat(
+            "MM/dd/yyyy:HH:mm:ss:SS");
 
     @Transient
     private static final String FORMAT_RESOURCE_MAP = "http://www.openarchives.org/ore/terms";
@@ -130,9 +147,23 @@ public class IndexTask implements Serializable {
      */
     private String status;
 
+    /**
+     * IndexTask processing status of new, unprocessed.
+     */
     public static final String STATUS_NEW = "NEW";
+    /**
+     * IndexTask processing status to represent task currently being processed.
+     */
     public static final String STATUS_IN_PROCESS = "IN PROCESS";
+    /**
+     * IndexTask processing status to represent a task that has successfully
+     * completed.
+     */
     public static final String STATUS_COMPLETE = "COMPLETE";
+    /**
+     * IndexTask processing status to represent a task that has failed
+     * processing.
+     */
     public static final String STATUS_FAILED = "FAILED";
 
     public IndexTask() {
@@ -140,6 +171,13 @@ public class IndexTask implements Serializable {
         this.status = STATUS_NEW;
     }
 
+    /**
+     * Construct an IndexTask for the given SystemMetadata and objectPath
+     * information.
+     * 
+     * @param smd
+     * @param objectPath
+     */
     public IndexTask(SystemMetadata smd, String objectPath) {
         this();
         if (smd.getIdentifier() != null) {
@@ -149,7 +187,8 @@ public class IndexTask implements Serializable {
             this.formatId = smd.getFormatId().getValue();
         }
         if (smd.getDateSysMetadataModified() != null) {
-            this.dateSysMetaModified = smd.getDateSysMetadataModified().getTime();
+            this.dateSysMetaModified = smd.getDateSysMetadataModified()
+                    .getTime();
         }
         this.marshalSystemMetadata(smd);
 
@@ -163,7 +202,8 @@ public class IndexTask implements Serializable {
         InputStream is = new ByteArrayInputStream(this.sysMetadata.getBytes());
         SystemMetadata smd = null;
         try {
-            smd = TypeMarshaller.unmarshalTypeFromStream(SystemMetadata.class, is);
+            smd = TypeMarshaller.unmarshalTypeFromStream(SystemMetadata.class,
+                    is);
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         } catch (InstantiationException e) {
@@ -193,6 +233,11 @@ public class IndexTask implements Serializable {
         }
     }
 
+    /**
+     * Does this task represent an update for an archived document.
+     * 
+     * @return
+     */
     @Transient
     public boolean isArchived() {
         boolean archived = false;
@@ -203,16 +248,27 @@ public class IndexTask implements Serializable {
         return archived;
     }
 
+    /**
+     * Does this task represent an update for an obsoleted document.
+     * 
+     * @return
+     */
     @Transient
     public boolean isObsoleted() {
         boolean obsoleted = false;
         SystemMetadata smd = unMarshalSystemMetadata();
-        if (smd.getObsoletedBy() != null && smd.getObsoletedBy().getValue() != null) {
+        if (smd.getObsoletedBy() != null
+                && smd.getObsoletedBy().getValue() != null) {
             obsoleted = true;
         }
         return obsoleted;
     }
 
+    /**
+     * Does this task represent a removal from the search index.
+     * 
+     * @return
+     */
     @Transient
     public boolean isDeleteTask() {
         return isArchived() || isObsoleted();
@@ -266,14 +322,30 @@ public class IndexTask implements Serializable {
         this.dateSysMetaModified = dateSysMetaModified;
     }
 
+    /**
+     * Private method exposed due to JPA and unit testing requirements. Should
+     * not use directly.
+     * 
+     * @return
+     */
     public int getPriority() {
         return priority;
     }
 
+    /**
+     * Private method exposed due to JPA and unit testing requirements. Should
+     * not use directly. See setUpdatePriority, setAddPriority methods.
+     * 
+     * @return
+     */
     public void setPriority(int priority) {
         this.priority = priority;
     }
 
+    /**
+     * Assign update priority to this IndexTask. Priority is used by processing
+     * to determine what order to process IndexTasks.
+     */
     @Transient
     public void setUpdatePriority() {
         if (isResourceMap()) {
@@ -283,6 +355,10 @@ public class IndexTask implements Serializable {
         }
     }
 
+    /**
+     * Assign add priority to this IndexTask. Priority is used by processing to
+     * determine what order to process IndexTasks.
+     */
     @Transient
     public void setAddPriority() {
         if (isResourceMap()) {
@@ -340,9 +416,10 @@ public class IndexTask implements Serializable {
 
     @Override
     public String toString() {
-        return "IndexTask [id=" + id + ", pid=" + pid + ", formatid=" + formatId + ", objectPath="
-                + objectPath + ", dateSysMetaModified=" + dateSysMetaModified
-                + ", taskModifiedDate=" + taskModifiedDate + ", priority=" + priority + ", status="
-                + status + "]";
+        return "IndexTask [id=" + id + ", pid=" + pid + ", formatid="
+                + formatId + ", objectPath=" + objectPath
+                + ", dateSysMetaModified=" + dateSysMetaModified
+                + ", taskModifiedDate=" + taskModifiedDate + ", priority="
+                + priority + ", status=" + status + "]";
     }
 }

@@ -27,13 +27,44 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * IndexTaskRepository is an extension of spring-data JpaRepository and
+ * represents the DAO layer for IndexTask object.
+ * 
+ * @author sroseboo
+ * 
+ */
 @Transactional(readOnly = true)
 public interface IndexTaskRepository extends JpaRepository<IndexTask, Long> {
 
+    /**
+     * Return a List of IndexTask objects whose pid value matches the pid
+     * parameter value.
+     * 
+     * @param pid
+     * @return
+     */
     List<IndexTask> findByPid(String pid);
 
+    /**
+     * Return a List of IndexTask objects whose pid and status values match the
+     * corresponding parameter values.
+     * 
+     * @param pid
+     * @param status
+     *            - a constant defined by the IndexTask class.
+     * @return
+     */
     List<IndexTask> findByPidAndStatus(String pid, String status);
 
-    List<IndexTask> findByStatusOrderByPriorityAscTaskModifiedDateAsc(String status);
+    /**
+     * Return a List of IndexTasks that have a matching status and order the
+     * results by priority and modified date
+     * 
+     * @param status
+     * @return
+     */
+    List<IndexTask> findByStatusOrderByPriorityAscTaskModifiedDateAsc(
+            String status);
 
 }
