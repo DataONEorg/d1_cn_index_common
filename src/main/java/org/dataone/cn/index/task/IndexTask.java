@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -40,6 +38,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.Version;
 
+import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.log4j.Logger;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
@@ -69,8 +68,8 @@ public class IndexTask implements Serializable {
     private static Logger logger = Logger.getLogger(IndexTask.class.getName());
 
     @Transient
-    private final DateFormat format = new SimpleDateFormat(
-            "MM/dd/yyyy:HH:mm:ss:SS");
+    private final FastDateFormat format = FastDateFormat
+            .getInstance("MM/dd/yyyy:HH:mm:ss:SS");
 
     @Transient
     private static final String FORMAT_RESOURCE_MAP = "http://www.openarchives.org/ore/terms";
@@ -187,8 +186,7 @@ public class IndexTask implements Serializable {
             this.formatId = smd.getFormatId().getValue();
         }
         if (smd.getDateSysMetadataModified() != null) {
-            this.dateSysMetaModified = smd.getDateSysMetadataModified()
-                    .getTime();
+            this.dateSysMetaModified = smd.getDateSysMetadataModified().getTime();
         }
         this.marshalSystemMetadata(smd);
 
@@ -202,8 +200,7 @@ public class IndexTask implements Serializable {
         InputStream is = new ByteArrayInputStream(this.sysMetadata.getBytes());
         SystemMetadata smd = null;
         try {
-            smd = TypeMarshaller.unmarshalTypeFromStream(SystemMetadata.class,
-                    is);
+            smd = TypeMarshaller.unmarshalTypeFromStream(SystemMetadata.class, is);
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         } catch (InstantiationException e) {
@@ -257,8 +254,7 @@ public class IndexTask implements Serializable {
     public boolean isObsoleted() {
         boolean obsoleted = false;
         SystemMetadata smd = unMarshalSystemMetadata();
-        if (smd.getObsoletedBy() != null
-                && smd.getObsoletedBy().getValue() != null) {
+        if (smd.getObsoletedBy() != null && smd.getObsoletedBy().getValue() != null) {
             obsoleted = true;
         }
         return obsoleted;
@@ -416,10 +412,9 @@ public class IndexTask implements Serializable {
 
     @Override
     public String toString() {
-        return "IndexTask [id=" + id + ", pid=" + pid + ", formatid="
-                + formatId + ", objectPath=" + objectPath
-                + ", dateSysMetaModified=" + dateSysMetaModified
-                + ", taskModifiedDate=" + taskModifiedDate + ", priority="
-                + priority + ", status=" + status + "]";
+        return "IndexTask [id=" + id + ", pid=" + pid + ", formatid=" + formatId
+                + ", objectPath=" + objectPath + ", dateSysMetaModified="
+                + dateSysMetaModified + ", taskModifiedDate=" + taskModifiedDate
+                + ", priority=" + priority + ", status=" + status + "]";
     }
 }
