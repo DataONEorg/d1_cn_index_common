@@ -74,6 +74,9 @@ public class IndexTask implements Serializable {
     @Transient
     private static final String FORMAT_RESOURCE_MAP = "http://www.openarchives.org/ore/terms";
 
+    @Transient
+    private static final int ALLOWED_RETRIES = 2;
+
     /**
      * Primary key of index_task table
      */
@@ -415,31 +418,29 @@ public class IndexTask implements Serializable {
     }
 
     private void setBackoffExectionTime() {
-        if (getTryCount() == 2) {
-            Calendar cal = Calendar.getInstance();
-            cal.setTimeInMillis(System.currentTimeMillis());
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(System.currentTimeMillis());
+        int tryCount = getTryCount();
+        if (tryCount == ALLOWED_RETRIES) {
             cal.add(Calendar.MINUTE, 20);
             setNextExection(cal.getTimeInMillis());
-        } else if (getTryCount() == 3) {
-            Calendar cal = Calendar.getInstance();
-            cal.setTimeInMillis(System.currentTimeMillis());
+        } else if (tryCount == ALLOWED_RETRIES + 1) {
             cal.add(Calendar.HOUR, 2);
             setNextExection(cal.getTimeInMillis());
-        } else if (getTryCount() == 4) {
-            Calendar cal = Calendar.getInstance();
-            cal.setTimeInMillis(System.currentTimeMillis());
+        } else if (tryCount == ALLOWED_RETRIES + 2) {
             cal.add(Calendar.HOUR, 8);
             setNextExection(cal.getTimeInMillis());
-        } else if (getTryCount() > 4) {
-            Calendar cal = Calendar.getInstance();
-            cal.setTimeInMillis(System.currentTimeMillis());
+        } else if (tryCount >= ALLOWED_RETRIES + 3 && tryCount <= ALLOWED_RETRIES + 5) {
             cal.add(Calendar.HOUR, 24);
+            setNextExection(cal.getTimeInMillis());
+        } else if (tryCount > ALLOWED_RETRIES + 5) {
+            cal.add(Calendar.DATE, 7);
             setNextExection(cal.getTimeInMillis());
         }
     }
 
     private boolean timeForRetryBackoff(String status) {
-        return (getTryCount() >= 2) && (STATUS_COMPLETE.equals(status) == false)
+        return (getTryCount() >= ALLOWED_RETRIES) && (STATUS_COMPLETE.equals(status) == false)
                 && (STATUS_IN_PROCESS.equals(status) == false);
     }
 

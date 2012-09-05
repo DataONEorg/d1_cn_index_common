@@ -109,11 +109,15 @@ public class IndexTaskJpaRepositoryTest {
         cal2.setTimeInMillis(System.currentTimeMillis());
         cal2.add(Calendar.MINUTE, (60 * 24) + 2);
         task = testNextBackoffForRetry(task, cal1, cal2);
+        task = testNextBackoffForRetry(task, cal1, cal2);
+        task = testNextBackoffForRetry(task, cal1, cal2);
 
         cal1.setTimeInMillis(System.currentTimeMillis());
-        cal1.add(Calendar.MINUTE, (60 * 8) + 2);
+        cal1.add(Calendar.MINUTE, (60 * 24) + 2);
         cal2.setTimeInMillis(System.currentTimeMillis());
-        cal2.add(Calendar.MINUTE, (60 * 24) + 2);
+        cal2.add(Calendar.DATE, 7);
+        cal2.add(Calendar.MINUTE, 2);
+        task = testNextBackoffForRetry(task, cal1, cal2);
         task = testNextBackoffForRetry(task, cal1, cal2);
     }
 
@@ -160,11 +164,15 @@ public class IndexTaskJpaRepositoryTest {
         cal2.setTimeInMillis(System.currentTimeMillis());
         cal2.add(Calendar.MINUTE, (60 * 24) + 2);
         task = testNextBackoffForFailed(task, cal1, cal2);
+        task = testNextBackoffForFailed(task, cal1, cal2);
+        task = testNextBackoffForFailed(task, cal1, cal2);
 
         cal1.setTimeInMillis(System.currentTimeMillis());
-        cal1.add(Calendar.MINUTE, (60 * 8) + 2);
+        cal1.add(Calendar.MINUTE, (60 * 24) + 2);
         cal2.setTimeInMillis(System.currentTimeMillis());
-        cal2.add(Calendar.MINUTE, (60 * 24) + 2);
+        cal2.add(Calendar.DATE, 7);
+        cal2.add(Calendar.MINUTE, 2);
+        task = testNextBackoffForFailed(task, cal1, cal2);
         task = testNextBackoffForFailed(task, cal1, cal2);
     }
 
