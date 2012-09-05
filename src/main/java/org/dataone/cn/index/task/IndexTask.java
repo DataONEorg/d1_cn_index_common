@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.util.Calendar;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -68,8 +69,7 @@ public class IndexTask implements Serializable {
     private static Logger logger = Logger.getLogger(IndexTask.class.getName());
 
     @Transient
-    private final FastDateFormat format = FastDateFormat
-            .getInstance("MM/dd/yyyy:HH:mm:ss:SS");
+    private final FastDateFormat format = FastDateFormat.getInstance("MM/dd/yyyy:HH:mm:ss:SS");
 
     @Transient
     private static final String FORMAT_RESOURCE_MAP = "http://www.openarchives.org/ore/terms";
@@ -117,6 +117,10 @@ public class IndexTask implements Serializable {
      * task generated/modification date
      */
     private long taskModifiedDate;
+
+    private long nextExecution = 0;
+
+    private int tryCount = 0;
 
     /**
      * Relative priority of this task. Some operations such as a change in
@@ -318,6 +322,22 @@ public class IndexTask implements Serializable {
         this.dateSysMetaModified = dateSysMetaModified;
     }
 
+    public long getNextExecution() {
+        return this.nextExecution;
+    }
+
+    public void setNextExection(long next) {
+        this.nextExecution = next;
+    }
+
+    public int getTryCount() {
+        return tryCount;
+    }
+
+    public void setTryCount(int count) {
+        this.tryCount = count;
+    }
+
     /**
      * Private method exposed due to JPA and unit testing requirements. Should
      * not use directly.
@@ -385,21 +405,63 @@ public class IndexTask implements Serializable {
         return status;
     }
 
+    // Do not use this method, used by unit tests only.
+    // use the specific 'markNew, markFailed, markInProcess' methods.
     public void setStatus(String status) {
-        this.taskModifiedDate = System.currentTimeMillis();
-        this.status = status;
+        if (status != null) {
+            this.taskModifiedDate = System.currentTimeMillis();
+            this.status = status;
+        }
+    }
+
+    private void setBackoffExectionTime() {
+        if (getTryCount() == 2) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(System.currentTimeMillis());
+            cal.add(Calendar.MINUTE, 20);
+            setNextExection(cal.getTimeInMillis());
+        } else if (getTryCount() == 3) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(System.currentTimeMillis());
+            cal.add(Calendar.HOUR, 2);
+            setNextExection(cal.getTimeInMillis());
+        } else if (getTryCount() == 4) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(System.currentTimeMillis());
+            cal.add(Calendar.HOUR, 8);
+            setNextExection(cal.getTimeInMillis());
+        } else if (getTryCount() > 4) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(System.currentTimeMillis());
+            cal.add(Calendar.HOUR, 24);
+            setNextExection(cal.getTimeInMillis());
+        }
+    }
+
+    private boolean timeForRetryBackoff(String status) {
+        return (getTryCount() >= 2) && (STATUS_COMPLETE.equals(status) == false)
+                && (STATUS_IN_PROCESS.equals(status) == false);
     }
 
     public void markInProgress() {
         this.setStatus(STATUS_IN_PROCESS);
+        this.tryCount++;
     }
 
     public void markNew() {
         this.setStatus(STATUS_NEW);
+        if (timeForRetryBackoff(status)) {
+            this.status = STATUS_FAILED;
+            setBackoffExectionTime();
+        }
     }
 
     public void markFailed() {
         this.setStatus(STATUS_FAILED);
+        if (timeForRetryBackoff(status)) {
+            this.status = STATUS_FAILED;
+            setBackoffExectionTime();
+        }
     }
 
     public int getVersion() {
@@ -412,9 +474,9 @@ public class IndexTask implements Serializable {
 
     @Override
     public String toString() {
-        return "IndexTask [id=" + id + ", pid=" + pid + ", formatid=" + formatId
-                + ", objectPath=" + objectPath + ", dateSysMetaModified="
-                + dateSysMetaModified + ", taskModifiedDate=" + taskModifiedDate
-                + ", priority=" + priority + ", status=" + status + "]";
+        return "IndexTask [id=" + id + ", pid=" + pid + ", formatid=" + formatId + ", objectPath="
+                + objectPath + ", dateSysMetaModified=" + dateSysMetaModified
+                + ", taskModifiedDate=" + taskModifiedDate + ", priority=" + priority + ", status="
+                + status + "]";
     }
 }

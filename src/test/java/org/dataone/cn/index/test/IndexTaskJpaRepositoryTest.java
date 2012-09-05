@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -63,6 +64,162 @@ public class IndexTaskJpaRepositoryTest {
     @Test
     public void testRepositoryInjection() {
         Assert.assertNotNull(repo);
+    }
+
+    @Test
+    public void testTaskExecutionBackoffForRetry() {
+        repo.deleteAll();
+        // noise
+        saveIndexTaskWithStatus(UUID.randomUUID().toString(), IndexTask.STATUS_NEW);
+        String pidValue = "find by pid:" + UUID.randomUUID().toString();
+        IndexTask task = saveIndexTaskWithStatus(pidValue, IndexTask.STATUS_NEW);
+
+        task = simulateMarkNewProcessing(task);
+        List<IndexTask> itList = repo
+                .findByStatusOrderByPriorityAscTaskModifiedDateAsc(IndexTask.STATUS_NEW);
+        Assert.assertEquals(2, itList.size());
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(System.currentTimeMillis());
+        cal.add(Calendar.MONTH, 1);
+        itList = repo.findByStatusAndNextExecutionLessThan(IndexTask.STATUS_FAILED,
+                cal.getTimeInMillis());
+        Assert.assertEquals(0, itList.size());
+
+        Calendar cal1 = Calendar.getInstance();
+        cal1.add(Calendar.MINUTE, 18);
+        Calendar cal2 = Calendar.getInstance();
+        cal2.add(Calendar.MINUTE, 22);
+        task = testNextBackoffForRetry(task, cal1, cal2);
+
+        cal1.setTimeInMillis(System.currentTimeMillis());
+        cal1.add(Calendar.MINUTE, 22);
+        cal2.setTimeInMillis(System.currentTimeMillis());
+        cal2.add(Calendar.MINUTE, 122);
+        task = testNextBackoffForRetry(task, cal1, cal2);
+
+        cal1.setTimeInMillis(System.currentTimeMillis());
+        cal1.add(Calendar.MINUTE, 122);
+        cal2.setTimeInMillis(System.currentTimeMillis());
+        cal2.add(Calendar.MINUTE, (60 * 8) + 2);
+        task = testNextBackoffForRetry(task, cal1, cal2);
+
+        cal1.setTimeInMillis(System.currentTimeMillis());
+        cal1.add(Calendar.MINUTE, (60 * 8) + 2);
+        cal2.setTimeInMillis(System.currentTimeMillis());
+        cal2.add(Calendar.MINUTE, (60 * 24) + 2);
+        task = testNextBackoffForRetry(task, cal1, cal2);
+
+        cal1.setTimeInMillis(System.currentTimeMillis());
+        cal1.add(Calendar.MINUTE, (60 * 8) + 2);
+        cal2.setTimeInMillis(System.currentTimeMillis());
+        cal2.add(Calendar.MINUTE, (60 * 24) + 2);
+        task = testNextBackoffForRetry(task, cal1, cal2);
+    }
+
+    @Test
+    public void testTaskExecutionBackoffForFailed() {
+        repo.deleteAll();
+        // noise
+        saveIndexTaskWithStatus(UUID.randomUUID().toString(), IndexTask.STATUS_NEW);
+        String pidValue = "find by pid:" + UUID.randomUUID().toString();
+        IndexTask task = saveIndexTaskWithStatus(pidValue, IndexTask.STATUS_NEW);
+
+        task = simulateMarkFailedProcessing(task);
+        List<IndexTask> itList = repo
+                .findByStatusOrderByPriorityAscTaskModifiedDateAsc(IndexTask.STATUS_NEW);
+        Assert.assertEquals(1, itList.size());
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(System.currentTimeMillis());
+        cal.add(Calendar.MINUTE, 1);
+        itList = repo.findByStatusAndNextExecutionLessThan(IndexTask.STATUS_FAILED,
+                cal.getTimeInMillis());
+        Assert.assertEquals(1, itList.size());
+
+        Calendar cal1 = Calendar.getInstance();
+        cal1.add(Calendar.MINUTE, 18);
+        Calendar cal2 = Calendar.getInstance();
+        cal2.add(Calendar.MINUTE, 22);
+        task = testNextBackoffForFailed(task, cal1, cal2);
+
+        cal1.setTimeInMillis(System.currentTimeMillis());
+        cal1.add(Calendar.MINUTE, 22);
+        cal2.setTimeInMillis(System.currentTimeMillis());
+        cal2.add(Calendar.MINUTE, 122);
+        task = testNextBackoffForFailed(task, cal1, cal2);
+
+        cal1.setTimeInMillis(System.currentTimeMillis());
+        cal1.add(Calendar.MINUTE, 122);
+        cal2.setTimeInMillis(System.currentTimeMillis());
+        cal2.add(Calendar.MINUTE, (60 * 8) + 2);
+        task = testNextBackoffForFailed(task, cal1, cal2);
+
+        cal1.setTimeInMillis(System.currentTimeMillis());
+        cal1.add(Calendar.MINUTE, (60 * 8) + 2);
+        cal2.setTimeInMillis(System.currentTimeMillis());
+        cal2.add(Calendar.MINUTE, (60 * 24) + 2);
+        task = testNextBackoffForFailed(task, cal1, cal2);
+
+        cal1.setTimeInMillis(System.currentTimeMillis());
+        cal1.add(Calendar.MINUTE, (60 * 8) + 2);
+        cal2.setTimeInMillis(System.currentTimeMillis());
+        cal2.add(Calendar.MINUTE, (60 * 24) + 2);
+        task = testNextBackoffForFailed(task, cal1, cal2);
+    }
+
+    private IndexTask testNextBackoffForRetry(IndexTask task, Calendar previousTimeIncrement,
+            Calendar nextTimeIncrement) {
+
+        task = simulateMarkNewProcessing(task);
+        List<IndexTask> itList = repo.findByStatusAndNextExecutionLessThan(IndexTask.STATUS_FAILED,
+                previousTimeIncrement.getTimeInMillis());
+        Assert.assertEquals(0, itList.size());
+
+        itList = repo.findByStatusAndNextExecutionLessThan(IndexTask.STATUS_FAILED,
+                nextTimeIncrement.getTimeInMillis());
+        Assert.assertEquals(1, itList.size());
+
+        IndexTask it = itList.get(0);
+        Assert.assertNotNull(it);
+        Assert.assertTrue(task.getPid().equals(it.getPid()));
+        Assert.assertTrue(IndexTask.STATUS_FAILED.equals(it.getStatus()));
+        return task;
+    }
+
+    private IndexTask testNextBackoffForFailed(IndexTask task, Calendar previousTimeIncrement,
+            Calendar nextTimeIncrement) {
+
+        task = simulateMarkFailedProcessing(task);
+        List<IndexTask> itList = repo.findByStatusAndNextExecutionLessThan(IndexTask.STATUS_FAILED,
+                previousTimeIncrement.getTimeInMillis());
+        Assert.assertEquals(0, itList.size());
+
+        itList = repo.findByStatusAndNextExecutionLessThan(IndexTask.STATUS_FAILED,
+                nextTimeIncrement.getTimeInMillis());
+        Assert.assertEquals(1, itList.size());
+
+        IndexTask it = itList.get(0);
+        Assert.assertNotNull(it);
+        Assert.assertTrue(task.getPid().equals(it.getPid()));
+        Assert.assertTrue(IndexTask.STATUS_FAILED.equals(it.getStatus()));
+        return task;
+    }
+
+    private IndexTask simulateMarkNewProcessing(IndexTask task) {
+        task.markInProgress();
+        // not ready
+        task.markNew();
+        task = repo.save(task);
+        return task;
+    }
+
+    private IndexTask simulateMarkFailedProcessing(IndexTask task) {
+        task.markInProgress();
+        // not ready
+        task.markFailed();
+        task = repo.save(task);
+        return task;
     }
 
     @Test
@@ -131,7 +288,35 @@ public class IndexTaskJpaRepositoryTest {
         String pidValue = "find by pid:" + UUID.randomUUID().toString();
         String status = "TEST-STATUS";
         saveIndexTaskWithStatus(pidValue, status);
+
+        String pidValue2 = "find by pid:" + UUID.randomUUID().toString();
+        String status2 = "TEST-STATUS2";
+        saveIndexTaskWithStatus(pidValue2, status2);
+
         List<IndexTask> itList = repo.findByPidAndStatus(pidValue, status);
+        Assert.assertEquals(1, itList.size());
+        IndexTask it = itList.get(0);
+        Assert.assertNotNull(it);
+        Assert.assertTrue(pidValue.equals(it.getPid()));
+        Assert.assertTrue(status.equals(it.getStatus()));
+    }
+
+    @Test
+    public void testFindByStatusAndNextExection() {
+        String pidValue = "find by pid:" + UUID.randomUUID().toString();
+        String status = "TEST-NEXT";
+        saveIndexTaskWithStatus(pidValue, status);
+
+        String pidValue2 = "find by pid:" + UUID.randomUUID().toString();
+        IndexTask task2 = saveIndexTaskWithStatus(pidValue2, "TEST-NEXT");
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(System.currentTimeMillis());
+        cal.add(Calendar.DATE, 1);
+        task2.setNextExection(cal.getTimeInMillis());
+        repo.save(task2);
+
+        List<IndexTask> itList = repo.findByStatusAndNextExecutionLessThan(status,
+                System.currentTimeMillis());
         Assert.assertEquals(1, itList.size());
         IndexTask it = itList.get(0);
         Assert.assertNotNull(it);
@@ -148,6 +333,7 @@ public class IndexTaskJpaRepositoryTest {
                 "garbage status", 1);
 
         String status = "findQueue";
+        String status2 = "badStatus";
 
         repo.deleteAll();
 
@@ -162,6 +348,12 @@ public class IndexTaskJpaRepositoryTest {
         // created last, but should be first due to highest priority
         String pidValue3 = "3rd created task: " + UUID.randomUUID().toString();
         saveIndexTaskWithStatusAndPriority(pidValue3, status, 1);
+
+        String pidValue4 = "4th created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriority(pidValue4, status2, 1);
+
+        String pidValue5 = "thrd created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriority(pidValue5, status2, 1);
 
         List<IndexTask> queue = repo.findByStatusOrderByPriorityAscTaskModifiedDateAsc(status);
         Assert.assertEquals(3, queue.size());

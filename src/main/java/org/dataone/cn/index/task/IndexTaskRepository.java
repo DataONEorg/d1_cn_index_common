@@ -64,7 +64,8 @@ public interface IndexTaskRepository extends JpaRepository<IndexTask, Long> {
      * @param status
      * @return
      */
-    List<IndexTask> findByStatusOrderByPriorityAscTaskModifiedDateAsc(
-            String status);
+    List<IndexTask> findByStatusOrderByPriorityAscTaskModifiedDateAsc(String status);
+
+    List<IndexTask> findByStatusAndNextExecutionLessThan(String status, long time);
 
 }
