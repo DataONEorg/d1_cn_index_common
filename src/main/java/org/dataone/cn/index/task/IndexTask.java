@@ -243,7 +243,7 @@ public class IndexTask implements Serializable {
      * @return
      */
     @Transient
-    public boolean isArchived() {
+    private boolean isArchived() {
         boolean archived = false;
         SystemMetadata smd = unMarshalSystemMetadata();
         if (smd.getArchived() != null && smd.getArchived().booleanValue()) {
@@ -253,28 +253,13 @@ public class IndexTask implements Serializable {
     }
 
     /**
-     * Does this task represent an update for an obsoleted document.
-     * 
-     * @return
-     */
-    @Transient
-    public boolean isObsoleted() {
-        boolean obsoleted = false;
-        SystemMetadata smd = unMarshalSystemMetadata();
-        if (smd.getObsoletedBy() != null && smd.getObsoletedBy().getValue() != null) {
-            obsoleted = true;
-        }
-        return obsoleted;
-    }
-
-    /**
      * Does this task represent a removal from the search index.
      * 
      * @return
      */
     @Transient
     public boolean isDeleteTask() {
-        return isArchived() || isObsoleted();
+        return isArchived();
     }
 
     public Long getId() {
