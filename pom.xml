@@ -191,16 +191,6 @@
     </scm>
     
     <repositories>
-        <repository>
-            <id>sonatype.org</id>
-            <url>https://repository.sonatype.org/content/shadows/centralm1</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
 		<repository>
 			<id>dataone.org</id>
 			<url>http://dev-testing.dataone.org/maven</url>
