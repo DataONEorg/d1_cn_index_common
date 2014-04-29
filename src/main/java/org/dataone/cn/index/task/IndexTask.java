@@ -91,7 +91,7 @@ public class IndexTask implements Serializable {
     /**
      * The object unique identifier
      */
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String pid;
 
     /**
@@ -109,6 +109,7 @@ public class IndexTask implements Serializable {
      * Filesystem path to the science metadata or resource map object. Null for
      * data objects
      */
+    @Column(columnDefinition = "TEXT")
     private String objectPath;
 
     /**
