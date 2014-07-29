@@ -41,7 +41,7 @@ import javax.persistence.Version;
 
 import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.log4j.Logger;
-import org.dataone.service.types.v1.SystemMetadata;
+import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
 import org.jibx.runtime.JiBXException;
 
