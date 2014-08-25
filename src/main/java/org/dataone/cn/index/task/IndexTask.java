@@ -386,6 +386,7 @@ public class IndexTask implements Serializable {
         this.taskModifiedDate = taskModifiedDate;
     }
 
+    @Transient
     public String getTaskModDateString() {
         return format.format(this.getTaskModifiedDate());
     }
