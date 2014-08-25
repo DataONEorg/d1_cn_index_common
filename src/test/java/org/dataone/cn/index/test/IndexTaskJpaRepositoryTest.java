@@ -396,7 +396,7 @@ public class IndexTaskJpaRepositoryTest {
         String formatValue = "CF-1.0";
         SystemMetadata smd = buildTestSysMetaData(pidValue, formatValue);
         IndexTask task = new IndexTask(smd, null);
-        repo.save(task);
+        task = repo.save(task);
         task = repo.findOne(task.getId());
         Assert.assertTrue(pidValue.equals(task.getPid()));
         Assert.assertTrue(formatValue.equals(task.getFormatId()));
@@ -447,7 +447,7 @@ public class IndexTaskJpaRepositoryTest {
         it.setPid(pid);
         it.setStatus(status);
         it.setPriority(priority);
-        repo.save(it);
+        it = repo.save(it);
         return it;
     }
 
