@@ -244,7 +244,7 @@ public class IndexTaskJpaRepositoryTest {
         IndexTask it = saveIndexTask("savedPid");
         Long itId = it.getId();
         it.setPid("updatePid");
-        repo.save(it);
+        it = repo.save(it);
         it = repo.findOne(itId);
         Assert.assertTrue("updatePid".equals(it.getPid()));
     }
@@ -264,7 +264,7 @@ public class IndexTaskJpaRepositoryTest {
     public void testVersioning() {
         IndexTask it = saveIndexTask("version-test");
         it.setAddPriority();
-        repo.save(it);
+        it = repo.save(it);
         it = repo.findOne(it.getId());
         it.setVersion(0);
         it.setUpdatePriority();
@@ -272,7 +272,7 @@ public class IndexTaskJpaRepositoryTest {
         try {
             // changing the version number should result in a stale object
             // exception from hibernate - optimistic lock failure.
-            repo.save(it);
+            it = repo.save(it);
         } catch (HibernateOptimisticLockingFailureException e) {
             logger.info("******* Stale Object Detected (as expected)!");
             errorFlag = true;
@@ -321,7 +321,7 @@ public class IndexTaskJpaRepositoryTest {
         cal.setTimeInMillis(System.currentTimeMillis());
         cal.add(Calendar.DATE, 1);
         task2.setNextExection(cal.getTimeInMillis());
-        repo.save(task2);
+        task2 = repo.save(task2);
 
         List<IndexTask> itList = repo.findByStatusAndNextExecutionLessThan(status,
                 System.currentTimeMillis());
