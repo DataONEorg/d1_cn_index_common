@@ -126,6 +126,8 @@ public class IndexTask implements Serializable {
 
     private int tryCount = 0;
 
+    private boolean deleted = false;
+
     /**
      * Relative priority of this task. Some operations such as a change in
      * access control rules should be propagated to the index before others
@@ -260,7 +262,7 @@ public class IndexTask implements Serializable {
      */
     @Transient
     public boolean isDeleteTask() {
-        return isArchived();
+        return isDeleted() || isArchived();
     }
 
     public Long getId() {
@@ -277,6 +279,14 @@ public class IndexTask implements Serializable {
 
     public void setPid(String pid) {
         this.pid = pid;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     public String getFormatId() {
@@ -463,8 +473,9 @@ public class IndexTask implements Serializable {
     @Override
     public String toString() {
         return "IndexTask [id=" + id + ", pid=" + pid + ", formatid=" + formatId + ", objectPath="
-                + objectPath + ", dateSysMetaModified=" + dateSysMetaModified
-                + ", taskModifiedDate=" + taskModifiedDate + ", priority=" + priority + ", status="
-                + status + "]";
+                + objectPath + ", dateSysMetaModified=" + dateSysMetaModified + ", deleted="
+                + deleted + ", taskModifiedDate=" + taskModifiedDate + ", priority=" + priority
+                + ", status=" + status + "]";
     }
+
 }
