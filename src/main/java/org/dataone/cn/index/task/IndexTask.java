@@ -241,13 +241,28 @@ public class IndexTask implements Serializable {
     }
 
     /**
+     * Does this task represent an update for an archived document.
+     * 
+     * @return
+     */
+    @Transient
+    private boolean isArchived() {
+        boolean archived = false;
+        SystemMetadata smd = unMarshalSystemMetadata();
+        if (smd.getArchived() != null && smd.getArchived().booleanValue()) {
+            archived = true;
+        }
+        return archived;
+    }
+
+    /**
      * Does this task represent a removal from the search index.
      * 
      * @return
      */
     @Transient
     public boolean isDeleteTask() {
-        return isDeleted();
+        return isDeleted() || isArchived();
     }
 
     public Long getId() {
