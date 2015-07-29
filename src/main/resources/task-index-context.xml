@@ -14,7 +14,7 @@
  		http://www.springframework.org/schema/tx/spring-tx.xsd">
 
     <context:annotation-config />
-	<context:component-scan base-package="org.dataone.cn.index"/>
+	<context:component-scan base-package="org.dataone.cn.index, org.dataone.cn.indexer"/>
 
     <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/>
     
