@@ -18,7 +18,7 @@ public class PerformanceLogger {
      * @param time the time in milliseconds spent on the task 
      */
     public synchronized void logTime(String id, long time) {
-        outputLog(String.format("%-50s %20d", id, time));
+        outputLog(String.format("%-50s, %20d", id, time));
     }
     
     private void outputLog(String logMessage) {
