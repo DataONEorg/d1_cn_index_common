@@ -9,7 +9,8 @@ import org.apache.log4j.Logger;
 public class PerformanceLogger {
 
     private static final Level LOG_LEVEL = Level.DEBUG;
-    private Logger log = Logger.getLogger(PerformanceLogger.class.getName());
+    private static final String PERFORMANCE_LOGGER_NAME = "performanceStats";
+    private Logger log = Logger.getLogger(PERFORMANCE_LOGGER_NAME);
     
     
     /**
