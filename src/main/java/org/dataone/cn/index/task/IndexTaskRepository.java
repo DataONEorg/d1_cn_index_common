@@ -68,4 +68,10 @@ public interface IndexTaskRepository extends JpaRepository<IndexTask, Long> {
 
     List<IndexTask> findByStatusAndNextExecutionLessThan(String status, long time);
 
+    /**
+     * Returns a count of the number of {@link IndexTask}s in the repository,
+     * with the given status.
+     * @param status a constant defined by the IndexTask class.
+     */
+    Long countByStatus(String status);
 }
