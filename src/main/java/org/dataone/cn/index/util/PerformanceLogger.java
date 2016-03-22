@@ -12,12 +12,7 @@ public class PerformanceLogger {
     private static boolean enabled;
     
     private PerformanceLogger() {
-        Boolean enabledProperty = Settings.getConfiguration().getBoolean("dataone.indexing.performance.logging.enabled");
-        if (enabledProperty == null || enabledProperty.equals(false))
-            enabled = false;
-        else 
-            enabled = true;
-        
+        enabled = Settings.getConfiguration().getBoolean("dataone.indexing.performance.logging.enabled", Boolean.FALSE);
         perfLogger = Logger.getLogger("performanceStats");
         
         if (perfLogger == null) {
