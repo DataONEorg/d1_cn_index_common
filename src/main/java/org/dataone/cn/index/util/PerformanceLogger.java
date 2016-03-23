@@ -32,6 +32,7 @@ public class PerformanceLogger {
     }
     
     public void log(String message) {
+        System.out.println("PerformanceLogger:" + message);
         if (enabled)
             perfLogger.log(LOGGING_LEVEL, message);
     }
