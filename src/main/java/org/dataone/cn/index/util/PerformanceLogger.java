@@ -15,6 +15,8 @@ public class PerformanceLogger {
         enabled = Settings.getConfiguration().getBoolean("dataone.indexing.performance.logging.enabled", Boolean.FALSE);
         perfLogger = Logger.getLogger("performanceStats");
         
+        System.out.println("PerformanceLogger : enabled=" + enabled + " appender=" + perfLogger);
+        
         if (perfLogger == null) {
             Logger defaultLogger = Logger.getLogger(PerformanceLogger.class.getName());
             defaultLogger.error("Unable to create Logger for performanceStats appender!");
@@ -32,6 +34,7 @@ public class PerformanceLogger {
     }
     
     public void log(String message) {
+        System.out.println("PerformanceLogger.log : enabled=" + enabled + " appender=" + perfLogger);
         if (enabled)
             perfLogger.log(LOGGING_LEVEL, message);
     }
