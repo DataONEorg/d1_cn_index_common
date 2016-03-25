@@ -405,8 +405,10 @@ public class IndexTask implements Serializable {
         return status;
     }
 
-    // Do not use this method, used by unit tests only.
-    // use the specific 'markNew, markFailed, markInProcess' methods.
+    /**
+     * Do not use this method, used by unit tests only.
+     * use the specific 'markNew, markFailed, markInProcess' methods.
+     */
     public void setStatus(String status) {
         if (status != null) {
             this.taskModifiedDate = System.currentTimeMillis();
