@@ -451,6 +451,7 @@ public class IndexTask implements Serializable {
     public void markNew() {
         this.setStatus(STATUS_NEW);
         if (timeForRetryBackoff(status)) {
+            logger.info("Even tough it was masked new, it is still considered failed for id "+pid+" since it was tried to many times.");
             this.status = STATUS_FAILED;
             setBackoffExectionTime();
         }
