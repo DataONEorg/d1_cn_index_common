@@ -40,6 +40,7 @@ import javax.persistence.Transient;
 import javax.persistence.Version;
 
 import org.apache.commons.lang.time.FastDateFormat;
+import org.dataone.exceptions.MarshallingException;
 import org.apache.log4j.Logger;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
@@ -217,7 +218,7 @@ public class IndexTask implements Serializable {
             logger.error(e.getMessage(), e);
         } catch (IllegalAccessException e) {
             logger.error(e.getMessage(), e);
-        } catch (JiBXException e) {
+        } catch (MarshallingException e) {
             logger.error(e.getMessage(), e);
         }
         return smd;
@@ -228,7 +229,7 @@ public class IndexTask implements Serializable {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
             TypeMarshaller.marshalTypeToOutputStream(smd, os);
-        } catch (JiBXException jibxEx) {
+        } catch (MarshallingException jibxEx) {
             logger.error(jibxEx.getMessage(), jibxEx);
         } catch (IOException ioEx) {
             logger.error(ioEx.getMessage(), ioEx);

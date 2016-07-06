@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.dataone.exceptions.MarshallingException;
 import org.apache.log4j.Logger;
 import org.dataone.cn.index.task.IndexTask;
 import org.dataone.cn.index.task.IndexTaskRepository;
@@ -41,7 +42,6 @@ import org.dataone.service.types.v1.ObjectFormatIdentifier;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
-import org.jibx.runtime.JiBXException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -429,7 +429,7 @@ public class IndexTaskJpaRepositoryTest {
             logger.error(e.getMessage(), e);
         } catch (IllegalAccessException e) {
             logger.error(e.getMessage(), e);
-        } catch (JiBXException e) {
+        } catch (MarshallingException e) {
             logger.error(e.getMessage(), e);
         }
     }
