@@ -228,8 +228,8 @@ public class IndexTask implements Serializable {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
             TypeMarshaller.marshalTypeToOutputStream(smd, os);
-        } catch (MarshallingException jibxEx) {
-            logger.error(jibxEx.getMessage(), jibxEx);
+        } catch (MarshallingException ex) {
+            logger.error(ex.getMessage(), ex);
         } catch (IOException ioEx) {
             logger.error(ioEx.getMessage(), ioEx);
         }
