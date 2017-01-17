@@ -29,7 +29,15 @@ import org.dataone.service.types.v2.SystemMetadata;
  *
  */
 public class IgnoringIndexIdPool {
-    private static final String IGNOREPIDPREFIX = "OBJECT_FORMAT_LIST.1";
+    /**
+     * the pid of the ObjectFormatList is OBJECT_FORMAT_LIST.1.{version}, so
+     * the .1 could be seen as part of the prefix.  For simplicity, and to guard 
+     * against possible minor change in the future, we will just use a shorter prefix - 
+     * without the '.1'
+     * Note: the prefix is maintained in 
+     * cn-buildout/dataone-cn-metacat/usr/share/metacata/debian/insertOrUpdateObjectFormatList.sh
+     */
+    private static final String IGNOREPIDPREFIX = "OBJECT_FORMAT_LIST.";
     
     /**
      * If the identifier on the given system metadata object should be not ignore
