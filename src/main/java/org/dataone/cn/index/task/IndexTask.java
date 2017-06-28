@@ -26,6 +26,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
@@ -179,7 +181,7 @@ public class IndexTask implements Serializable {
         this.taskModifiedDate = System.currentTimeMillis();
         this.status = STATUS_NEW;
     }
-
+    
     /**
      * Construct an IndexTask for the given SystemMetadata and objectPath
      * information.
@@ -480,5 +482,33 @@ public class IndexTask implements Serializable {
                 + deleted + ", taskModifiedDate=" + taskModifiedDate + ", priority=" + priority
                 + ", status=" + status + "]";
     }
+    
+    public byte[] serialize() throws IOException {
 
+        ByteArrayOutputStream baos;
+        ObjectOutputStream out = null;
+        try {
+            baos = new ByteArrayOutputStream();
+            out = new ObjectOutputStream(baos);
+            out.writeObject(this);
+            out.flush();
+
+            return baos.toByteArray();
+        } finally {
+            if (out != null)
+                out.close();    
+        }      
+    }
+
+    public static IndexTask deserialize(byte[] objectBytes) throws IOException, ClassNotFoundException {
+
+        ObjectInputStream in = null;
+        try {
+            in = new ObjectInputStream(new ByteArrayInputStream(objectBytes));
+            return (IndexTask) in.readObject();
+        } finally {
+            if (in != null) in.close();
+        }
+    }
+    
 }
