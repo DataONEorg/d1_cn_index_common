@@ -21,30 +21,25 @@
  */
 package org.dataone.cn.index.messaging.rabbitmq;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 import org.apache.log4j.Logger;
 import org.dataone.cn.index.messaging.IndexTaskMessagingClient;
 import org.dataone.cn.index.task.IndexTask;
 import org.dataone.cn.messaging.QueueAccess;
+import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.ServiceFailure;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageDeliveryMode;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Import;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
-//@Import(MessagingServerConfiguration.class)
+
+
 
 
 /**
@@ -54,7 +49,7 @@ import org.springframework.context.annotation.Import;
  */
 public class RabbitMQMessagingClient implements IndexTaskMessagingClient {
     
-    private static ApplicationContext serverContext = new AnnotationConfigApplicationContext(MessagingServerConfiguration.class);
+    
     
     private static CachingConnectionFactory rabbitConnectionFactory = null;
    
@@ -68,9 +63,38 @@ public class RabbitMQMessagingClient implements IndexTaskMessagingClient {
      * Default constructor
      */
     public RabbitMQMessagingClient() {
-        newTaskQueue = (Queue)serverContext.getBean("newTaskQueue");
-        rabbitConnectionFactory = (CachingConnectionFactory) serverContext.getBean("rabbitConnectionFactory");
+        initConnFactory();
+        initQueue();
         queueAccess = new QueueAccess(rabbitConnectionFactory, newTaskQueue.getName());
+    }
+    
+    /**
+     * Initialize the caching connection factory base on the configuration
+     */
+    private void initConnFactory() {
+        String username = Settings.getConfiguration().getString("messaging.username");
+        logger.info("RabbitMQMessagingClient.initConnFactory - the user name of the connection is "+username);
+        String password = Settings.getConfiguration().getString("messaging.password");
+        String hostname = Settings.getConfiguration().getString("messaging.hostname");
+        logger.info("RabbitMQMessagingClient.initConnFactory - the host name of the connection is "+hostname);
+        rabbitConnectionFactory = new CachingConnectionFactory(hostname);
+        rabbitConnectionFactory.setUsername(username);
+        rabbitConnectionFactory.setPassword(password);
+        rabbitConnectionFactory.setPublisherConfirms(true);
+        rabbitConnectionFactory.setPublisherReturns(false);
+    }
+    
+    /**
+     * Initialize the new task queue base on the configuration
+     * This method should be called after calling the method initConnFactory
+     */
+    private void initQueue() {
+        String newTaskQueueName = Settings.getConfiguration().getString("messaging.newtask.queuename");
+        logger.info("RabbitMQMessagingClient.initQueue - the name of the new task queue is "+newTaskQueueName);
+        RabbitAdmin rabbitAdmin =  new RabbitAdmin(rabbitConnectionFactory);
+        //The queue is durable, non-exclusive and non auto-delete.
+        newTaskQueue = new Queue(newTaskQueueName);
+        rabbitAdmin.declareQueue(newTaskQueue);
     }
     
     /**
