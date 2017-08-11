@@ -22,11 +22,12 @@
 package org.dataone.cn.index.messaging.rabbitmq;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.Logger;
 import org.dataone.cn.index.messaging.IndexTaskMessagingClient;
 import org.dataone.cn.index.task.IndexTask;
-import org.dataone.cn.messaging.QueueAccess;
 import org.dataone.configuration.Settings;
 import org.dataone.service.exceptions.InvalidSystemMetadata;
 import org.dataone.service.exceptions.ServiceFailure;
@@ -34,10 +35,9 @@ import org.dataone.service.types.v2.SystemMetadata;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageDeliveryMode;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.AMQP.BasicProperties.Builder;
 
 
 
@@ -51,27 +51,35 @@ public class RabbitMQMessagingClient implements IndexTaskMessagingClient {
     
     
     
-    private static CachingConnectionFactory rabbitConnectionFactory = null;
+    //private static CachingConnectionFactory rabbitConnectionFactory = null;
    
-    private Queue newTaskQueue = null;
+    //private Queue newTaskQueue = null;
     
-    private QueueAccess queueAccess = null;
+    //private QueueAccess queueAccess = null;
     
     private static Logger logger = Logger.getLogger(RabbitMQMessagingClient.class.getName());
+    private MessageSubmitter submitter = null;
+    private String newTaskQueueName = null;
     
     /**
      * Default constructor
+     * @throws TimeoutException 
+     * @throws IOException 
      */
-    public RabbitMQMessagingClient() {
-        initConnFactory();
-        initQueue();
-        queueAccess = new QueueAccess(rabbitConnectionFactory, newTaskQueue.getName());
+    public RabbitMQMessagingClient() throws IOException, TimeoutException {
+        submitter = new MessageSubmitter();
+        newTaskQueueName = Settings.getConfiguration().getString("messaging.newtask.queuename");
+        logger.info("RabbitMQMessagingClient.initQueue - the name of the new task queue is "+newTaskQueueName);
+        //initConnFactory();
+        //initQueue();
+        //queueAccess = new QueueAccess(rabbitConnectionFactory, newTaskQueue.getName());
     }
+
     
     /**
      * Initialize the caching connection factory base on the configuration
      */
-    private void initConnFactory() {
+    /*private void initConnFactory() {
         String username = Settings.getConfiguration().getString("messaging.username");
         logger.info("RabbitMQMessagingClient.initConnFactory - the user name of the connection is "+username);
         String password = Settings.getConfiguration().getString("messaging.password");
@@ -82,26 +90,27 @@ public class RabbitMQMessagingClient implements IndexTaskMessagingClient {
         rabbitConnectionFactory.setPassword(password);
         rabbitConnectionFactory.setPublisherConfirms(true);
         rabbitConnectionFactory.setPublisherReturns(false);
-    }
+    }*/
     
     /**
      * Initialize the new task queue base on the configuration
      * This method should be called after calling the method initConnFactory
      */
-    private void initQueue() {
+    /*private void initQueue() {
         String newTaskQueueName = Settings.getConfiguration().getString("messaging.newtask.queuename");
         logger.info("RabbitMQMessagingClient.initQueue - the name of the new task queue is "+newTaskQueueName);
         RabbitAdmin rabbitAdmin =  new RabbitAdmin(rabbitConnectionFactory);
         //The queue is durable, non-exclusive and non auto-delete.
         newTaskQueue = new Queue(newTaskQueueName);
         rabbitAdmin.declareQueue(newTaskQueue);
-    }
+    }*/
     
     /**
      * Submit a index task to the message server
      * @param indexTask
      * @return
      * @throws ServiceFailure
+     * @throws  
      */
     @Override
     public boolean submit(IndexTask indexTask) throws ServiceFailure, InvalidSystemMetadata {
@@ -109,7 +118,18 @@ public class RabbitMQMessagingClient implements IndexTaskMessagingClient {
         if(indexTask == null) {
             throw new IllegalArgumentException("RabbitMQMessagingClient.submit - the paramater of the IndexTask object can't be null.");
         }
-        queueAccess.publish(generateMessage(indexTask));
+        //queueAccess.publish(generateMessage(indexTask));
+        if(newTaskQueueName == null) {
+            throw new ServiceFailure("0000", "The queue name of the newTaskQueue is null and we don't where we should send the message. Please check the setting on the property \"messaging.newtask.queuename\".");
+        }
+        try {
+            byte[] body = getBytes(indexTask);
+            BasicProperties props = generateMessageProperties(indexTask);
+            submitter.submit(newTaskQueueName, props, body);
+            logger.info("RabbitMQMessagingClient.submit - the index task for the object "+indexTask.getPid()+" has been submitted to the RabbitMQ broker sucessfully.");
+        } catch (IOException e) {
+            throw new ServiceFailure("0000", "We can't build or sent the message since "+e.getMessage());
+        }
         return success;
     }
     
@@ -118,7 +138,7 @@ public class RabbitMQMessagingClient implements IndexTaskMessagingClient {
      * @param indexTask
      * @return the rabbitMQ message object
      */
-    private Message generateMessage(IndexTask indexTask) throws ServiceFailure, InvalidSystemMetadata {
+    /*private Message generateMessage(IndexTask indexTask) throws ServiceFailure, InvalidSystemMetadata {
         if(indexTask == null) {
             throw new IllegalArgumentException("RabbitMQMessagingClient.generateMesage - the paramater of the IndexTask object can't be null.");
         }
@@ -144,6 +164,30 @@ public class RabbitMQMessagingClient implements IndexTaskMessagingClient {
                 .setHeader(PID, indexTask.getPid())
                 .build();
         return message;
+    }*/
+    
+    /*
+     * Generate properties which will be sent to the broker.
+     */
+    private BasicProperties generateMessageProperties(IndexTask indexTask) throws InvalidSystemMetadata {
+        if(indexTask == null) {
+            throw new IllegalArgumentException("RabbitMQMessagingClient.generateMesage - the paramater of the IndexTask object can't be null.");
+        }
+        SystemMetadata sysmetaObj = indexTask.unMarshalSystemMetadata();
+        if(sysmetaObj == null) {
+            throw new InvalidSystemMetadata("0000", "The system metadata string in the index task can't be transformed to a java object. The system metadata string is: \n"+indexTask.getSysMetadata());
+        }
+        String originalNodeId = "unknown";
+        if(sysmetaObj.getOriginMemberNode() != null) {
+            originalNodeId = sysmetaObj.getOriginMemberNode().getValue();
+        }
+        HashMap<String, Object> headers = new HashMap<String, Object>();
+        headers.put(NODEID, originalNodeId);
+        headers.put(FORMATTYPE, indexTask.getFormatId());
+        headers.put(PID, indexTask.getPid());
+        Builder builder = new Builder();
+        BasicProperties props = builder.headers(headers).build();
+        return props;
     }
     
     /**

@@ -26,10 +26,11 @@
             <version>${d1_cn_common.version}</version>
             <type>jar</type>
         </dependency>
-		 
-		 
-		 
-		 
+		 <dependency>
+		    <groupId>com.rabbitmq</groupId>
+            <artifactId>rabbitmq-client</artifactId>
+            <version>1.3.0</version>
+		 </dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
