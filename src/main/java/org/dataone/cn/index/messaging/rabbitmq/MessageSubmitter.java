@@ -52,28 +52,13 @@ public class MessageSubmitter {
      * @throws IOException
      * @throws TimeoutException
      */
-    public MessageSubmitter() throws IOException, TimeoutException {
-        initialConnection();
+    public MessageSubmitter(Connection connection) throws IOException, TimeoutException {
+        //initialConnection();
+        this.connection = connection;
     }
     
     
-    /**
-     * Create a connection object. The single connection maybe will be replaced by a connection pool class.
-     * @throws IOException
-     * @throws TimeoutException
-     */
-    private void initialConnection() throws IOException, TimeoutException {
-        String username = Settings.getConfiguration().getString("messaging.username");
-        logger.info("MessageSubmitter.initialConnection - the user name of the connection is "+username);
-        String password = Settings.getConfiguration().getString("messaging.password");
-        String hostname = Settings.getConfiguration().getString("messaging.hostname");
-        logger.info("MessageSubmitter.initialConnection - the host name of the connection is "+hostname);
-        ConnectionFactory connFactory = new ConnectionFactory();
-        connFactory.setHost(hostname);
-        connFactory.setUsername(username);
-        connFactory.setPassword(password);
-        connection = connFactory.newConnection();
-    }
+   
     
     /**
      * Submit a message to the given queue in the broker.
