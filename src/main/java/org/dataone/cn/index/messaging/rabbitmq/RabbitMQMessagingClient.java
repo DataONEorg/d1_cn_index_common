@@ -23,6 +23,7 @@ package org.dataone.cn.index.messaging.rabbitmq;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -163,8 +164,8 @@ public class RabbitMQMessagingClient implements IndexTaskMessagingClient {
             connection = connectionPool.borrowObject();
             MessageSubmitter submitter = new MessageSubmitter(connection);
             byte[] body = getBytes(indexTask);
-            BasicProperties props = generateMessageProperties(indexTask);
-            submitter.submit(newTaskQueueName, props, body);
+            Map<String,Object> messageHeaders = generateMessageHeaders(indexTask);
+            submitter.submit(newTaskQueueName, messageHeaders, body);
             logger.info("RabbitMQMessagingClient.submit - the index task for the object "+indexTask.getPid()+" has been submitted to the RabbitMQ broker sucessfully.");
         } catch (Exception e) {
             if(indexTask != null) {
@@ -217,9 +218,9 @@ public class RabbitMQMessagingClient implements IndexTaskMessagingClient {
     }*/
     
     /*
-     * Generate properties which will be sent to the broker.
+     * Generate headers which will be sent with the message.
      */
-    private BasicProperties generateMessageProperties(IndexTask indexTask) throws InvalidSystemMetadata {
+    private Map<String,Object> generateMessageHeaders(IndexTask indexTask) throws InvalidSystemMetadata {
         if(indexTask == null) {
             throw new IllegalArgumentException("RabbitMQMessagingClient.generateMesage - the paramater of the IndexTask object can't be null.");
         }
@@ -235,9 +236,7 @@ public class RabbitMQMessagingClient implements IndexTaskMessagingClient {
         headers.put(NODEID, originalNodeId);
         headers.put(FORMATTYPE, indexTask.getFormatId());
         headers.put(PID, indexTask.getPid());
-        Builder builder = new Builder();
-        BasicProperties props = builder.headers(headers).build();
-        return props;
+        return headers;
     }
     
     /**

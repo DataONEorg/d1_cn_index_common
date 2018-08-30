@@ -35,4 +35,8 @@ public class PerformanceLogger {
         if (enabled)
             perfLogger.log(LOGGING_LEVEL, message);
     }
+    
+    public boolean isEnabled() {
+        return enabled;
+    }
 }

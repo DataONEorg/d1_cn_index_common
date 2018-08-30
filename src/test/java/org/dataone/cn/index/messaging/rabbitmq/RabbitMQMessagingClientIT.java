@@ -8,6 +8,7 @@ import org.dataone.cn.index.task.IndexTask;
 import org.dataone.cn.index.task.IndexTaskGenerator;
 import org.dataone.service.types.v2.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class RabbitMQMessagingClientIT {
@@ -15,6 +16,7 @@ public class RabbitMQMessagingClientIT {
     /**
      * Test the submit method
      */
+    @Ignore("requires a running RabbitMQ broker")
     @Test
     public void submitIT() throws Exception{
         ClassLoader classLoader = getClass().getClassLoader();
