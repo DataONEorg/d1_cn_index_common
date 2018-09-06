@@ -47,13 +47,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate3.HibernateOptimisticLockingFailureException;
-//import org.springframework.test.context.ContextConfiguration;
-//import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-//@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 // context files are located from the root of the test's classpath
 // for example org/dataone/cn/index/test/
-//@ContextConfiguration(locations = { "test-context.xml" })
+@ContextConfiguration(locations = { "test-context.xml" })
 public class IndexTaskJpaRepositoryTest {
 
     private static Logger logger = Logger.getLogger(IndexTaskJpaRepositoryTest.class.getName());
@@ -61,12 +61,12 @@ public class IndexTaskJpaRepositoryTest {
     @Autowired
     private IndexTaskRepository repo;
 
-    //@Test
+    @Test
     public void testRepositoryInjection() {
         Assert.assertNotNull(repo);
     }
 
-    //@Test
+    @Test
     public void testTaskExecutionBackoffForRetry() {
         repo.deleteAll();
         // noise
@@ -121,7 +121,7 @@ public class IndexTaskJpaRepositoryTest {
         task = testNextBackoffForRetry(task, cal1, cal2);
     }
 
-    //@Test
+    @Test
     public void testTaskExecutionBackoffForFailed() {
         repo.deleteAll();
         // noise
@@ -230,7 +230,7 @@ public class IndexTaskJpaRepositoryTest {
         return task;
     }
 
-    //@Test
+    @Test
     public void testAddOneTask() {
         int initialSize = repo.findAll().size();
         IndexTask task = saveIndexTask("pid1");
@@ -239,7 +239,7 @@ public class IndexTaskJpaRepositoryTest {
         Assert.assertTrue("pid1".equals(indexTask.getPid()));
     }
 
-    //@Test
+    @Test
     public void testUpdateTask() {
         IndexTask it = saveIndexTask("savedPid");
         Long itId = it.getId();
@@ -249,7 +249,7 @@ public class IndexTaskJpaRepositoryTest {
         Assert.assertTrue("updatePid".equals(it.getPid()));
     }
 
-    //@Test
+    @Test
     public void testDeleteTask() {
         int intialSize = repo.findAll().size();
         IndexTask it = saveIndexTask("deleteThis");
@@ -260,7 +260,7 @@ public class IndexTaskJpaRepositoryTest {
         Assert.assertEquals(intialSize, repo.findAll().size());
     }
 
-    //@Test
+    @Test
     public void testVersioning() {
         IndexTask it = saveIndexTask("version-test");
         it.setAddPriority();
@@ -280,7 +280,7 @@ public class IndexTaskJpaRepositoryTest {
         Assert.assertTrue(errorFlag);
     }
 
-    //@Test
+    @Test
     public void testFindByPidQuery() {
         String pidValue = "find by pid:" + UUID.randomUUID().toString();
         saveIndexTask(pidValue);
@@ -291,7 +291,7 @@ public class IndexTaskJpaRepositoryTest {
         Assert.assertTrue(pidValue.equals(it.getPid()));
     }
 
-    //@Test
+    @Test
     public void testFindByPidAndStatusQuery() {
         String pidValue = "find by pid:" + UUID.randomUUID().toString();
         String status = "TEST-STATUS";
@@ -309,7 +309,7 @@ public class IndexTaskJpaRepositoryTest {
         Assert.assertTrue(status.equals(it.getStatus()));
     }
 
-    //@Test
+    @Test
     public void testFindByStatusAndNextExection() {
         String pidValue = "find by pid:" + UUID.randomUUID().toString();
         String status = "TEST-NEXT";
@@ -335,7 +335,7 @@ public class IndexTaskJpaRepositoryTest {
     /**
      * Tests status narrowing and ordering of the task queue query
      */
-    //@Test
+    @Test
     public void testFindIndexTaskQueue() {
         saveIndexTaskWithStatusAndPriority("garbage task" + UUID.randomUUID().toString(),
                 "garbage status", 1);
@@ -390,7 +390,7 @@ public class IndexTaskJpaRepositoryTest {
      * IndexTask to test marshal/un-marshal logic of IndexTask.
      * 
      */
-    //@Test
+    @Test
     public void testTaskSystemMetadataMarshaling() {
         String pidValue = "gent-test-AddTask-" + UUID.randomUUID().toString();
         String formatValue = "CF-1.0";
