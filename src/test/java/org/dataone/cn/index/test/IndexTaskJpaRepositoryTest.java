@@ -46,7 +46,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate3.HibernateOptimisticLockingFailureException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -273,7 +273,7 @@ public class IndexTaskJpaRepositoryTest {
             // changing the version number should result in a stale object
             // exception from hibernate - optimistic lock failure.
             it = repo.save(it);
-        } catch (HibernateOptimisticLockingFailureException e) {
+        } catch (ObjectOptimisticLockingFailureException e) {
             logger.info("******* Stale Object Detected (as expected)!");
             errorFlag = true;
         }
