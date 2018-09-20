@@ -8,9 +8,9 @@
   
 	<properties>
   		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
- 		  <spring.version>4.3.8.RELEASE</spring.version>
+ 		  <spring.version>3.1.4.RELEASE</spring.version>
  		  <d1_common_java.version>2.4.0-SNAPSHOT</d1_common_java.version>
-      <compiler.target.version>1.8</compiler.target.version>
+      <compiler.target.version>1.7</compiler.target.version>
 	</properties>
 	<dependencies>
 		<dependency>
