@@ -382,6 +382,113 @@ public class IndexTaskJpaRepositoryTest {
         Assert.assertTrue(pidValue1.equals(task2.getPid()));
         Assert.assertTrue(pidValue2.equals(task3.getPid()));
     }
+    
+    /**
+     * Test the method of findByStatusOrderAndTryCount
+     */
+    @Test
+    public void testFindByStatusOrderAndTryCount() {
+        String status = "new";
+        String status2 = "new2";
+      
+        repo.deleteAll();
+
+        // created first, should be first among priority 2 items
+        String pidValue1 = "1st created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriorityAndTryCount(pidValue1, status, 2, 1);
+
+        // created second, should be second among priority 2 items
+        String pidValue2 = "2nd created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriorityAndTryCount(pidValue2, status2, 2, 1);
+
+        // created last, but should be first due to highest priority
+        String pidValue3 = "3rd created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriorityAndTryCount(pidValue3, status, 1, 5);
+
+        String pidValue4 = "4th created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriorityAndTryCount(pidValue4, status, 1, 4);
+
+        String pidValue5 = "thrd created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriorityAndTryCount(pidValue5, status, 1, 3);
+        
+        List<IndexTask> queue = repo.findByStatusAndTryCountLessThanOrderByPriorityAscTaskModifiedDateAsc(status, 5);
+        Assert.assertEquals(3, queue.size());
+        
+        queue = repo.findByStatusAndTryCountLessThanOrderByPriorityAscTaskModifiedDateAsc(status2, 5);
+        Assert.assertEquals(1, queue.size());
+        Assert.assertTrue(pidValue2.equals(queue.get(0).getPid()));
+
+        queue = repo.findByStatusAndTryCountLessThanOrderByPriorityAscTaskModifiedDateAsc(status, 4);
+        Assert.assertEquals(2, queue.size());
+        Assert.assertTrue(pidValue5.equals(queue.get(0).getPid()));
+        Assert.assertTrue(pidValue1.equals(queue.get(1).getPid()));
+        
+        queue = repo.findByStatusAndTryCountLessThanOrderByPriorityAscTaskModifiedDateAsc(status, 3);
+        Assert.assertEquals(1, queue.size());
+        Assert.assertTrue(pidValue1.equals(queue.get(0).getPid()));
+        
+    }
+    
+    /**
+     * Test the method of findByStatusAndNextExecutionLessThanAndTryCountLessThan
+     */
+    @Test
+    public void testFindByStatusAndNextExecutionLessThanAndTryCountLessThan() throws Exception {
+        String status = "new";
+        String status2 = "new2";
+      
+        repo.deleteAll();
+
+        long firstPoint = System.currentTimeMillis();
+        // created first, should be first among priority 2 items
+        String pidValue1 = "1st created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriorityAndTryCountAndNextExecution(pidValue1, status, 2, 1, firstPoint);
+
+        // created second, should be second among priority 2 items
+        String pidValue2 = "2nd created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriorityAndTryCountAndNextExecution(pidValue2, status2, 2, 1, firstPoint);
+
+        Thread.sleep(100);
+        long secondPoint = System.currentTimeMillis();
+        Thread.sleep(100);
+        long thirdPoint = System.currentTimeMillis();
+        Thread.sleep(100);
+        // created last, but should be first due to highest priority
+        String pidValue3 = "3rd created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriorityAndTryCountAndNextExecution(pidValue3, status, 1, 5, thirdPoint);
+
+        
+        String pidValue4 = "4th created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriorityAndTryCountAndNextExecution(pidValue4, status, 1, 4, thirdPoint);
+
+
+        String pidValue5 = "thrd created task: " + UUID.randomUUID().toString();
+        saveIndexTaskWithStatusAndPriorityAndTryCountAndNextExecution(pidValue5, status, 1, 3, thirdPoint);
+        
+        List<IndexTask> queue = repo.findByStatusAndNextExecutionLessThanAndTryCountLessThan(status, System.currentTimeMillis(), 5);
+        Assert.assertEquals(3, queue.size());
+        
+        queue = repo.findByStatusAndNextExecutionLessThanAndTryCountLessThan(status, secondPoint, 5);
+        Assert.assertEquals(1, queue.size());
+        Assert.assertTrue(pidValue1.equals(queue.get(0).getPid()));
+        
+        queue = repo.findByStatusAndNextExecutionLessThanAndTryCountLessThan(status, secondPoint, 3);
+        Assert.assertEquals(1, queue.size());
+        Assert.assertTrue(pidValue1.equals(queue.get(0).getPid()));
+        
+        queue = repo.findByStatusAndNextExecutionLessThanAndTryCountLessThan(status2, System.currentTimeMillis(), 5);
+        Assert.assertEquals(1, queue.size());
+        Assert.assertTrue(pidValue2.equals(queue.get(0).getPid()));
+
+        queue = repo.findByStatusAndNextExecutionLessThanAndTryCountLessThan(status, System.currentTimeMillis(), 4);
+        Assert.assertEquals(2, queue.size());
+        //Assert.assertTrue(pidValue1.equals(queue.get(0).getPid()));
+        //Assert.assertTrue(pidValue5.equals(queue.get(1).getPid()));
+        
+        queue = repo.findByStatusAndNextExecutionLessThanAndTryCountLessThan(status, System.currentTimeMillis(), 3);
+        Assert.assertEquals(1, queue.size());
+        Assert.assertTrue(pidValue1.equals(queue.get(0).getPid()));
+    }
 
     /**
      * This test creates a 'test' system meta data instance and uses the task
@@ -450,6 +557,28 @@ public class IndexTaskJpaRepositoryTest {
         it = repo.save(it);
         return it;
     }
+    
+    private IndexTask saveIndexTaskWithStatusAndPriorityAndTryCount(String pid, String status, int priority, int tryCount) {
+        IndexTask it = new IndexTask(buildTestSysMetaData(pid, "test-format"), "test object path");
+        it.setPid(pid);
+        it.setStatus(status);
+        it.setPriority(priority);
+        it.setTryCount(tryCount);
+        it = repo.save(it);
+        return it;
+    }
+    
+    private IndexTask saveIndexTaskWithStatusAndPriorityAndTryCountAndNextExecution(String pid, String status, int priority, int tryCount, long nextExec) {
+        IndexTask it = new IndexTask(buildTestSysMetaData(pid, "test-format"), "test object path");
+        it.setPid(pid);
+        it.setStatus(status);
+        it.setPriority(priority);
+        it.setTryCount(tryCount);
+        it.setNextExection(nextExec);
+        it = repo.save(it);
+        return it;
+    }
+
 
     public SystemMetadata buildTestSysMetaData(String pidValue, String formatValue) {
         SystemMetadata systemMetadata = new SystemMetadata();
