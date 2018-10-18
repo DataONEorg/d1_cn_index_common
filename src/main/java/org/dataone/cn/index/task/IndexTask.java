@@ -207,8 +207,9 @@ public class IndexTask implements Serializable {
         this.priority = PRIORITY_NONE;
     }
 
+    
     @Transient
-    public SystemMetadata unMarshalSystemMetadata() {
+    protected SystemMetadata unMarshalSystemMetadata() {
         InputStream is = new ByteArrayInputStream(this.sysMetadata.getBytes());
         SystemMetadata smd = null;
         try {
@@ -251,6 +252,7 @@ public class IndexTask implements Serializable {
     private boolean isArchived() {
         boolean archived = false;
         SystemMetadata smd = unMarshalSystemMetadata();
+        
         if (smd.getArchived() != null && smd.getArchived().booleanValue()) {
             archived = true;
         }

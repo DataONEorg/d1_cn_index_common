@@ -1,4 +1,4 @@
-package org.dataone.cn.index.test;
+package org.dataone.cn.index.task;
 
 import org.dataone.cn.index.task.IgnoringIndexIdPool;
 import org.dataone.service.types.v1.Identifier;

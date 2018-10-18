@@ -20,7 +20,7 @@
  * $Id$
  */
 
-package org.dataone.cn.index.test;
+package org.dataone.cn.index.task;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
