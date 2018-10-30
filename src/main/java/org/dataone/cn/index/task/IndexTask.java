@@ -209,23 +209,26 @@ public class IndexTask implements Serializable {
 
     
     @Transient
-    protected SystemMetadata unMarshalSystemMetadata() {
-        InputStream is = new ByteArrayInputStream(this.sysMetadata.getBytes());
+    protected SystemMetadata unMarshalSystemMetadata() throws MarshallingException {
         SystemMetadata smd = null;
-        try {
-            smd = TypeMarshaller.unmarshalTypeFromStream(SystemMetadata.class, is);
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        } catch (InstantiationException e) {
-            logger.error(e.getMessage(), e);
-        } catch (IllegalAccessException e) {
-            logger.error(e.getMessage(), e);
-        } catch (MarshallingException e) {
-            logger.error(e.getMessage(), e);
+        byte[] bytes = this.sysMetadata.getBytes();
+        if (bytes != null) {
+            InputStream is = new ByteArrayInputStream(bytes);
+            try {
+                smd = TypeMarshaller.unmarshalTypeFromStream(SystemMetadata.class, is);
+            } catch (IOException | InstantiationException | IllegalAccessException e) {
+                logger.error(e.getMessage(), e);
+            
+                throw new MarshallingException("Unexpected exception during unmarshalling of sysmeta for pid " + this.pid
+                   + " with smd of length " + bytes.length, e);
+            }
+        } else {
+            throw new MarshallingException("There is no sysmeta to unmarshall for pid " + this.pid);
         }
         return smd;
     }
 
+    
     @Transient
     private void marshalSystemMetadata(SystemMetadata smd) {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -247,12 +250,12 @@ public class IndexTask implements Serializable {
      * Does this task represent an update for an archived document.
      * 
      * @return
+     * @throws MarshallingException 
      */
     @Transient
-    private boolean isArchived() {
+    private boolean isArchived() throws MarshallingException {
         boolean archived = false;
         SystemMetadata smd = unMarshalSystemMetadata();
-        
         if (smd.getArchived() != null && smd.getArchived().booleanValue()) {
             archived = true;
         }
@@ -263,9 +266,10 @@ public class IndexTask implements Serializable {
      * Does this task represent a removal from the search index.
      * 
      * @return
+     * @throws MarshallingException 
      */
     @Transient
-    public boolean isDeleteTask() {
+    public boolean isDeleteTask() throws MarshallingException {
         return isDeleted() || isArchived();
     }
 

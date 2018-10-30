@@ -388,10 +388,11 @@ public class IndexTaskJpaRepositoryTest {
      * generator to create an index task. After the IndexTask is stored are
      * retrieved, the instance of systemMetadata is un-marshaled from the
      * IndexTask to test marshal/un-marshal logic of IndexTask.
+     * @throws MarshallingException 
      * 
      */
     @Test
-    public void testTaskSystemMetadataMarshaling() {
+    public void testTaskSystemMetadataMarshaling() throws MarshallingException {
         String pidValue = "gent-test-AddTask-" + UUID.randomUUID().toString();
         String formatValue = "CF-1.0";
         SystemMetadata smd = buildTestSysMetaData(pidValue, formatValue);
