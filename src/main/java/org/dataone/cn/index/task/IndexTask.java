@@ -41,6 +41,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.Version;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.time.FastDateFormat;
 import org.dataone.exceptions.MarshallingException;
 import org.apache.log4j.Logger;
@@ -146,8 +147,9 @@ public class IndexTask implements Serializable {
     private int priority;
     private static final int PRIORITY_UPDATE = 1;
     private static final int PRIORITY_ADD = 2;
-    private static final int PRIOIRTY_UPDATE_RESOURCE_MAP = 3;
-    private static final int PRIORITY_ADD_RESOURCE_MAP = 4;
+    // OREs are not deprioritized anymore
+    private static final int PRIOIRTY_UPDATE_RESOURCE_MAP = 1;
+    private static final int PRIORITY_ADD_RESOURCE_MAP = 2;
     private static final int PRIORITY_NONE = 99;
 
     /**
@@ -221,6 +223,8 @@ public class IndexTask implements Serializable {
             
                 throw new MarshallingException("Unexpected exception during unmarshalling of sysmeta for pid " + this.pid
                    + " with smd of length " + bytes.length, e);
+            } finally {
+                IOUtils.closeQuietly(is);
             }
         } else {
             throw new MarshallingException("There is no sysmeta to unmarshall for pid " + this.pid);

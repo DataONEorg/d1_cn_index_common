@@ -87,10 +87,10 @@ public class IndexTaskGenerator {
         if (IgnoringIndexIdPool.isNotIgnorePid(smd)) {
             IndexTask task = new IndexTask(smd, null);
             task.setDeleted(true);
-            String id = "Unknow";
-            if(smd != null && smd.getIdentifier() != null) {
-                id = smd.getIdentifier().getValue();
-            }            
+//            String id = "Unknow";
+//            if(smd != null && smd.getIdentifier() != null) {
+//                id = smd.getIdentifier().getValue();
+//            }            
             return task;
         }
         return null;
@@ -107,10 +107,10 @@ public class IndexTaskGenerator {
         if (IgnoringIndexIdPool.isNotIgnorePid(smd)) {
             IndexTask task = new IndexTask(smd, objectURI);
             task.setPriority(priority);
-            String id = "Unknow";
-            if(smd != null && smd.getIdentifier() != null) {
-                id = smd.getIdentifier().getValue();
-            }
+//            String id = "Unknow";
+//            if(smd != null && smd.getIdentifier() != null) {
+//                id = smd.getIdentifier().getValue();
+//            }
             return task;
         }
         return null;
